@@ -1,2 +1,2 @@
 # metaPHP
-php元编程
+php元编程自动生成php
