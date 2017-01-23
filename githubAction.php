@@ -52,7 +52,9 @@ abstract class githubAction{
         $this->checkout($this->runLocalBranch);
         $result = exec('cd ' . $this->webRootDir . ';git checkout .;git pull');
         var_dump('cd ' . $this->webRootDir . ';git checkout .;git pull');
+        
         var_dump($result);
+
         $this->log('githubReceive',$result);
     }
     //提交代码
