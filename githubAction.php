@@ -5,9 +5,6 @@
  * Date: 2016/12/28
  * Time: 下午5:16
  */
-ini_set('display_errors', 1);
-error_reporting(E_ALL ^ E_NOTICE);
-include_once('classAction.php');
 abstract class githubAction{
     public $runLocalBranch = '';//正在运行的本地分支
     public $runBranch = '';//正在运行的本地分支对应的远程分支
