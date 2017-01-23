@@ -34,6 +34,11 @@ abstract class githubAction{
         $result = exec('cd ' . $this->webRootDir . ';git checkout '.$name);
         $this->log('createBranch','创建分支:'.$name.';结果'.$result);
     }
+    //合并分支
+    public function mergeBranch($branchName){
+        $result = exec('cd ' . $this->webRootDir . ';git merge '.$branchName);
+        $this->log('mergeBranch','合并分支:'.$branchName.';结果'.$result);
+    }
     //更新绑定分支代码
     public function pull(){
         if(empty($this->listenBranch)){
@@ -50,6 +55,11 @@ abstract class githubAction{
         $this->checkout($this->runLocalBranch);
         $result = exec('cd ' . $this->webRootDir . ';git pull');
         $this->log('githubReceive',$result);
+    }
+    //提交代码
+    public function push(){
+        $result = exec('cd ' . $this->webRootDir . ';git push');
+        $this->log('mergeBranch','提交代码;结果'.$result);
     }
     public function log($type,$message){
         if(!is_dir($this->cachePath)){
