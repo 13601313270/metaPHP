@@ -53,7 +53,7 @@ abstract class githubAction{
         }
         //写日志
         $this->checkout($this->runLocalBranch);
-        $result = exec('cd ' . $this->webRootDir . ';git pull');
+        $result = exec('cd ' . $this->webRootDir . ';git checkout .;git pull');
         $this->log('githubReceive',$result);
     }
     //提交代码
