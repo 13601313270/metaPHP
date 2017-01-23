@@ -34,7 +34,8 @@ abstract class githubAction{
         $result = exec('cd ' . $this->webRootDir . ';git checkout '.$name);
         $this->log('createBranch','创建分支:'.$name.';结果'.$result);
     }
-    public function run(){
+    //更新绑定分支代码
+    public function pull(){
         if(empty($this->listenBranch)){
             exit;
         }
@@ -45,14 +46,15 @@ abstract class githubAction{
         if(!in_array($response->ref,$this->listenBranch)){
             exit;
         }
-        if(!is_dir($this->cachePath)){
-            mkdir($this->cachePath);
-        }
         //写日志
+        $this->checkout($this->runLocalBranch);
         $result = exec('cd ' . $this->webRootDir . ';git pull');
         $this->log('githubReceive',$result);
     }
     public function log($type,$message){
+        if(!is_dir($this->cachePath)){
+            mkdir($this->cachePath);
+        }
         file_put_contents($this->cachePath.'/'.$type.'.log',$message."\n",FILE_APPEND);
     }
 }
