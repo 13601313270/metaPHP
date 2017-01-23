@@ -38,23 +38,9 @@ abstract class githubAction{
     }
     //更新绑定分支代码
     public function pull(){
-        if(empty($this->listenBranch)){
-            exit;
-        }
-        if(empty($this->webRootDir)){
-            exit;
-        }
-        $response = json_decode(file_get_contents('php://input'));
-        if(!in_array($response->ref,$this->listenBranch)){
-            exit;
-        }
         //写日志
         $this->checkout($this->runLocalBranch);
         $result = exec('cd ' . $this->webRootDir . ';git checkout .;git pull');
-        var_dump('cd ' . $this->webRootDir . ';git checkout .;git pull');
-        
-        var_dump($result);
-
         $this->log('githubReceive',$result);
     }
     //提交代码
