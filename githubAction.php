@@ -18,11 +18,11 @@ abstract class githubAction{
         if(!in_array($response->ref,$this->listenBranch)){
             exit;
         }
-        if(!is_dir('../metaPHPCacheFile')){
-            mkdir('../metaPHPCacheFile');
-        }
         $webRootDir = dirname(dirname(__FILE__));
         $cachePath = $webRootDir.'/metaPHPCacheFile';
+        if(!is_dir($cachePath)){
+            mkdir($cachePath);
+        }
         //写日志
         $result = exec('cd ' . $webRootDir . ';git pull');
         file_put_contents($cachePath.'/githubReceive.log',$result."\n",FILE_APPEND);
