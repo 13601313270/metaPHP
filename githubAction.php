@@ -9,6 +9,8 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL ^ E_NOTICE);
 include_once('classAction.php');
 abstract class githubAction{
+    public $runLocalBranch = '';//正在运行的本地分支
+    public $runBranch = '';//正在运行的本地分支对应的远程分支
     public $webRootDir = '';
     public $cachePath = '';
     protected $listenBranch = array();
@@ -22,11 +24,16 @@ abstract class githubAction{
             $this->log('createBranch','创建分支:['.$name.'];结果'.$result);
         }
     }
+    //删除分支
+    public function deleteBranch($name){
+        $result = exec('cd ' . $this->webRootDir . ';git branch -d '.$name);
+        $this->log('deleteBranch','删除分支:['.$name.'];结果'.$result);
+    }
     //切换分支
-//    public function checkout($name){
-//        $result = exec('cd ' . $this->webRootDir . ';git checkout '.$name);
-//        $this->log('createBranch','创建分支:'.$name.';结果'.$result);
-//    }
+    public function checkout($name){
+        $result = exec('cd ' . $this->webRootDir . ';git checkout '.$name);
+        $this->log('createBranch','创建分支:'.$name.';结果'.$result);
+    }
     public function run(){
         if(empty($this->listenBranch)){
             exit;
