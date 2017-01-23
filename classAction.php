@@ -72,15 +72,22 @@ class classAction extends ReflectionClass{
      * @since 1.0
      * @return $this
      */
-    public static function createClass($name,$parentClass='',$implements='',$path=''){
-        //class_exists
+    public static function createClass($name,$parentClass='',$implements='',$autoLoadClass){
+        if($parentClass!='' && !class_exists($parentClass)){
+            throw new Exception('创建的类的父类不存在');
+        }
+        if($implements!='' && !interface_exists($implements)){
+            throw new Exception('实现的接口不存在');
+        }
         $temp = get_called_class();
         $newCreateClass = new $temp($name,false);
         $newCreateClass->isInFile = false;
-        $newCreateClass->filePath = $path;
+        $newCreateClass->filePath = $autoLoadClass($name);
         $newCreateClass->__name = $name;
         $newCreateClass->parentClass = $parentClass;
-        if(is_string($implements)){
+        if($implements==''){
+            $newCreateClass->__implements = array();
+        }elseif(is_string($implements)){
             $newCreateClass->__implements = array($implements);
         }else{
             $newCreateClass->__implements = $implements;
@@ -94,15 +101,74 @@ class classAction extends ReflectionClass{
         echo implode('',array_slice($content,$method->getStartLine()-1,$method->getEndLine()-$method->getStartLine()+1));
     }
     public function save(){
+        if($this->isInFile){
+            echo 'exit;hear;';exit;
+        }else{
+            $code = "<?php
+/**
+ * Created by metaPHP.
+ * User: metaPHPRobot
+ * Date: ".date('Y-m-d')."
+ * Time: ".date('H:i:s')."
+ */\n";
+            $code .= "class ".$this->getName();
+            if($this->getParentClass()!==false){
+                $code.= " extends ".$this->getParentClass()->getName();
+            }
+            $intefaceArr = $this->getInterfaceNames();
+            if(count($intefaceArr)>0){
+                $code.= " implements ".$intefaceArr[0];
+            }
+            $code .= "{\n";
+            $code .= "}";
 
+            $methods = $this->getMethods();
+            if(count($methods)>0){
+                echo 'hear;methods';exit;
+            }
+            file_put_contents($this->getFileName(),$code);
+
+            $temp = get_called_class();
+            return new $temp($this->getName());
+        }
+//
+//
+//        $content = @file($this->getFileName());
+//        $code = implode('',array_slice($content,$this->getStartLine()-1,$this->getEndLine()-$this->getStartLine()+1));
+//        foreach(array(
+//                    'isAbstract'=>'abstract',
+//                    'isFinal'=>'final'
+//                ) as $k=>$v){
+//            if(isset($this->functionState[$k])){
+//                $preg = '/(((public|private|protected|abstract|final|static)\s*?)*)\s*function\s*(\S*)\(/';
+//                preg_match($preg,$code,$match);
+//                $functionAbs = explode(' ',$match[1]);
+//                if(!in_array('abstract',$functionAbs) && $this->functionState[$k]==true){
+//                    $functionAbs[] = $v;
+//                }elseif(in_array('abstract',$functionAbs) && $this->functionState[$k]==false){
+//
+//                }
+//                $code = preg_replace($preg,implode(' ',$functionAbs).' function $4(',$code);
+//            }
+//        }
+//        array_splice($content,$this->getStartLine()-1,$this->getEndLine()-$this->getStartLine()+1,$code);
+//        $content = implode("\n",$content);
+//        file_put_contents($this->getFileName(),$content);
     }
-    public function getMethods(){
-        $methods = parent::getMethods();
+    public function getMethods($filter = null){
+        $methods = parent::getMethods($filter);
         $returnArr = array();
         foreach($methods as $v){
             $returnArr[] = new functionAction($v->class,$v->name);
         }
         return $returnArr;
+    }
+    public function getInterfaceNames(){
+        if($this->isInFile){
+            return parent::getInterfaceNames();
+        }else{
+            return $this->__implements;
+        }
     }
 }
 class functionAction extends ReflectionMethod{
@@ -120,7 +186,7 @@ class functionAction extends ReflectionMethod{
             return $this;
         }
     }
-    public function isFinal($val){
+    public function isFinal($val=''){
         if($val==''){
             return parent::isFinal();
         }else{
