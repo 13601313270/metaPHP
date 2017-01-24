@@ -44,18 +44,22 @@ abstract class githubAction{
     //更新绑定分支代码
     public function pull(){
         //写日志
-        $this->checkout($this->runLocalBranch);
         $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull');
         $this->log('githubReceive',$result);
+    }
+    //推送代码push
+    public function push(){
+        $result = $this->exec('cd ' . $this->webRootDir . ';git push');
+        $this->log('mergeBranch','提交代码;结果'.$result);
+    }
+    //提交代码commit
+    public function commit($message){
+        $result = $this->exec('cd ' . $this->webRootDir . ';git add .;git commit -m "'.$message.'"');
+        $this->log('mergeBranch','提交代码;结果'.$result);
     }
     private function exec($line){
         $result = array();
         return exec($line,$result);
-    }
-    //提交代码
-    public function push(){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git push');
-        $this->log('mergeBranch','提交代码;结果'.$result);
     }
     public function log($type,$message){
         if(!is_dir($this->cachePath)){
