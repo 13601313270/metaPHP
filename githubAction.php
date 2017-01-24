@@ -39,9 +39,8 @@ abstract class githubAction{
     }
     //合并分支
     public function mergeBranch($branchName){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git merge '.$branchName);
+        $result = $this->exec('cd ' . $this->webRootDir . ';git merge --no-ff '.$branchName);
         $this->log('mergeBranch','合并分支:'.$branchName.';结果'.json_encode($result));
-        $this->commit('合并分支:'.$branchName);
     }
     //更新绑定分支代码
     public function pull(){
@@ -71,6 +70,6 @@ abstract class githubAction{
         if(!is_dir($this->cachePath)){
             mkdir($this->cachePath);
         }
-        file_put_contents($this->cachePath.'/'.$type.'.log',$message."\n",FILE_APPEND);
+//        file_put_contents($this->cachePath.'/'.$type.'.log',$message."\n",FILE_APPEND);
     }
 }
