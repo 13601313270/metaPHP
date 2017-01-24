@@ -29,7 +29,7 @@ abstract class githubAction{
     }
     //删除分支
     public function deleteBranch($name){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git branch -d '.$name);
+        $result = $this->exec('cd ' . $this->webRootDir . ';git branch -D '.$name);
         $this->log('deleteBranch','删除分支:['.$name.'];结果'.json_encode($result));
     }
     //切换分支
