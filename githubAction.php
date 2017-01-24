@@ -41,6 +41,7 @@ abstract class githubAction{
     public function mergeBranch($branchName){
         $result = $this->exec('cd ' . $this->webRootDir . ';git merge '.$branchName);
         $this->log('mergeBranch','合并分支:'.$branchName.';结果'.$result);
+        $this->commit('合并分支:'.$branchName);
     }
     //更新绑定分支代码
     public function pull(){
