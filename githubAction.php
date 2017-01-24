@@ -46,7 +46,7 @@ abstract class githubAction{
     //更新绑定分支代码
     public function pull(){
         //写日志
-        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull;git submodule update');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull;');
         $this->log('githubReceive',$result);
     }
     //推送代码push
