@@ -58,10 +58,12 @@ abstract class githubAction{
         $result = $this->exec('cd ' . $this->webRootDir . ';git add .;git commit -m "'.$message.'"');
         $this->log('mergeBranch','提交代码;结果'.$result);
     }
+    //执行命令
     private function exec($line){
         $result = array();
         return exec($line,$result);
     }
+    //记录日志
     public function log($type,$message){
         if(!is_dir($this->cachePath)){
             mkdir($this->cachePath);
