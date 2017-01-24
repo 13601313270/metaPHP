@@ -7,15 +7,20 @@
  */
 abstract class githubAction{
     public $runLocalBranch = '';//正在运行的本地分支
-    public $runBranch = '';//正在运行的本地分支对应的远程分支
     public $webRootDir = '';
     public $cachePath = '';
-    protected $listenBranch = array();
+    public function __construct()
+    {
+        if(empty($this->webRootDir)){
+            throw new Exception('必须设置根目录');
+        }
+    }
+
     //创建分支
     public function createBranch($name,$isChangeNow=true){
-        $result = exec('cd ' . $this->webRootDir . ';git branch '.$name);
+        $result = $this->exec('cd ' . $this->webRootDir . ';git branch '.$name);
         if($isChangeNow){
-            $result = exec('cd ' . $this->webRootDir . ';git checkout '.$name);
+            $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$name);
             $this->log('createBranch','创建分支:['.$name.']并切换到在此分支;结果'.$result);
         }else{
             $this->log('createBranch','创建分支:['.$name.'];结果'.$result);
@@ -23,29 +28,33 @@ abstract class githubAction{
     }
     //删除分支
     public function deleteBranch($name){
-        $result = exec('cd ' . $this->webRootDir . ';git branch -d '.$name);
+        $result = $this->exec('cd ' . $this->webRootDir . ';git branch -d '.$name);
         $this->log('deleteBranch','删除分支:['.$name.'];结果'.$result);
     }
     //切换分支
     public function checkout($name){
-        $result = exec('cd ' . $this->webRootDir . ';git checkout '.$name);
+        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$name);
         $this->log('createBranch','创建分支:'.$name.';结果'.$result);
     }
     //合并分支
     public function mergeBranch($branchName){
-        $result = exec('cd ' . $this->webRootDir . ';git merge '.$branchName);
+        $result = $this->exec('cd ' . $this->webRootDir . ';git merge '.$branchName);
         $this->log('mergeBranch','合并分支:'.$branchName.';结果'.$result);
     }
     //更新绑定分支代码
     public function pull(){
         //写日志
         $this->checkout($this->runLocalBranch);
-        $result = exec('cd ' . $this->webRootDir . ';git checkout .;git pull');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull');
         $this->log('githubReceive',$result);
+    }
+    private function exec($line){
+        $result = array();
+        return exec($line,$result);
     }
     //提交代码
     public function push(){
-        $result = exec('cd ' . $this->webRootDir . ';git push');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git push');
         $this->log('mergeBranch','提交代码;结果'.$result);
     }
     public function log($type,$message){
