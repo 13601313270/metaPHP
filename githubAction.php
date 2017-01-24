@@ -51,7 +51,7 @@ abstract class githubAction{
     }
     //推送代码push
     public function push(){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git push');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git push origin '.$this->runLocalBranch);
         $this->log('mergeBranch','提交代码;结果'.$result);
     }
     //提交代码commit
