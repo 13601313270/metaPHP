@@ -6,7 +6,8 @@
  * Time: 下午5:16
  */
 abstract class githubAction{
-    public $runLocalBranch = '';//正在运行的本地分支
+    //正在运行的本地分支
+    public $runLocalBranch = '';
     public $webRootDir = '';
     public $cachePath = '';
     public function __construct()
