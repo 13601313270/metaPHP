@@ -56,7 +56,7 @@ abstract class githubAction{
     }
     //提交代码commit
     public function commit($message){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git add .;git commit -m "'.$message.'"');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git add --all;git commit -m "'.$message.'"');
         $this->log('commit','提交代码;结果'.json_encode($result));
     }
     //执行命令
