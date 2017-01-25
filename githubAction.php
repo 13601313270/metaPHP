@@ -37,6 +37,11 @@ abstract class githubAction{
         $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$name);
         $this->log('createBranch','创建分支:'.$name.';结果'.json_encode($result));
     }
+    //分支还原
+    public function branchClean(){
+        $result = $this->exec('cd ' . $this->webRootDir . ';git stash;git checkout .');
+        return $result;
+    }
     //合并分支
     public function mergeBranch($branchName){
         $result = $this->exec('cd ' . $this->webRootDir . ';git merge --no-ff '.$branchName);
@@ -59,10 +64,11 @@ abstract class githubAction{
         $this->log('commit','提交代码;结果'.json_encode($result));
     }
     //执行命令
-    private function exec($line){
+    public function exec($line){
         $result = array();
-        $return = exec($line,$result);
+        $return = exec($line.' 2>&1',$result);
         print_r($result);
+        print_r($return);
         return $result;
     }
     //记录日志
