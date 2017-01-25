@@ -66,9 +66,8 @@ abstract class githubAction{
     //执行命令
     public function exec($line){
         $result = array();
-        $return = exec($line.' 2>&1',$result);
+        exec($line.' 2>&1',$result);
         print_r($result);
-        print_r($return);
         return $result;
     }
     //记录日志
