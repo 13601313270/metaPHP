@@ -170,6 +170,25 @@ class classAction extends ReflectionClass{
             return $this->__implements;
         }
     }
+    //移除
+    public function remove(){
+        $content = @file($this->getFileName());
+        $startLine = $this->getStartLine();
+        $endLine = $this->getEndLine();
+        $code = implode('',array_slice($content,$startLine-1,$endLine-$startLine+1));
+        $content = implode('',$content);
+        $content = str_replace($code,'',$content);
+        $content = str_replace($this->getDocComment(),'',$content);
+        $content = $this->codeClean($content);
+        file_put_contents($this->getFileName(),$content);
+        echo $content;
+    }
+    //代码整理
+    private function codeClean($content){
+        $content = preg_replace("/<\?php(\s*)/","<?php\n",$content);
+        $content = preg_replace("/(\s*)(final\s+|abstract\s+)?class/","\n$2class",$content);
+        return $content;
+    }
 }
 class functionAction extends ReflectionMethod{
     public function __construct($class, $name)
