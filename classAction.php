@@ -79,6 +79,12 @@ class classAction extends ReflectionClass{
         if($implements!='' && !interface_exists($implements)){
             throw new Exception('实现的接口不存在');
         }
+        if(!function_exists($autoLoadClass)){
+            throw new Exception('自动加载函数不存在');
+        }
+        if(empty($autoLoadClass($name))){
+            throw new Exception('自动加载函数,找不到对应路径');
+        }
         $temp = get_called_class();
         $newCreateClass = new $temp($name,false);
         $newCreateClass->isInFile = false;
