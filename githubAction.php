@@ -50,7 +50,7 @@ abstract class githubAction{
     //更新绑定分支代码
     public function pull(){
         //写日志
-        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull;');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull;git submodule update');
         $this->log('githubReceive',json_encode($result));
     }
     //推送代码push
