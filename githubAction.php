@@ -39,7 +39,7 @@ abstract class githubAction{
     }
     //分支还原
     public function branchClean(){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git stash;git checkout .');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git stash;git checkout .;git reset HEAD^');
         return $result;
     }
     //合并分支
