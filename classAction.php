@@ -126,6 +126,11 @@ class classAction extends ReflectionClass{
             if(count($methods)>0){
                 echo 'hear;methods';exit;
             }
+
+            $filePath = dirname($this->getFileName());
+            if(!is_dir($filePath)){
+                mkdir($filePath,0777,true);
+            }
             file_put_contents($this->getFileName(),$code);
 
             $temp = get_called_class();
