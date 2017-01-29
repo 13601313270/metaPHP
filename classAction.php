@@ -180,7 +180,12 @@ class classAction extends ReflectionClass{
         $content = str_replace($code,'',$content);
         $content = str_replace($this->getDocComment(),'',$content);
         $content = $this->codeClean($content);
-        file_put_contents($this->getFileName(),$content);
+        if(preg_match('/<\?php(\s*)$/',$content,$match)){
+            //如果删的什么都没有剩下,则整个文件删除掉
+            unlink($this->getFileName());
+        }else{
+            file_put_contents($this->getFileName(),$content);
+        }
         echo $content;
     }
     //代码整理
