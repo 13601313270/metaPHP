@@ -82,13 +82,14 @@ class classAction extends ReflectionClass{
         if(!function_exists($autoLoadClass)){
             throw new Exception('自动加载函数不存在');
         }
-        if(empty($autoLoadClass($name))){
+        $filePath = $autoLoadClass($name);
+        if(empty($filePath)){
             throw new Exception('自动加载函数,找不到对应路径');
         }
         $temp = get_called_class();
         $newCreateClass = new $temp($name,false);
         $newCreateClass->isInFile = false;
-        $newCreateClass->filePath = $autoLoadClass($name);
+        $newCreateClass->filePath = $filePath;
         $newCreateClass->__name = $name;
         $newCreateClass->parentClass = $parentClass;
         if($implements==''){
