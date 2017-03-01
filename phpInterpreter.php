@@ -36,6 +36,245 @@ final class phpInterpreter{
             'child'=>$this->temp('window','')
         );
     }
+    private function getTabStr($tab){
+        $return = '';
+        for($i=0;$i<$tab;$i++){
+            $return.='    ';
+        }
+        return $return;
+    }
+    public function _getCodeByCodeMeta($name,$codeMetaArr,$tab){
+        $tabStr = $this->getTabStr($tab);
+        $return = '';
+        if(isset($codeMetaArr['type'])){
+            if($codeMetaArr['type']=='window'){
+                foreach($codeMetaArr['child'] as $k=>$v){
+                    $return .= $this->_getCodeByCodeMeta($k,$v,0);
+                }
+            }
+            elseif($codeMetaArr['type']=='phpBegin'){
+                return $tabStr."<?php\n";
+            }
+            elseif($codeMetaArr['type']=='注释段'){
+                return $tabStr.'/*'.$codeMetaArr['value']."*/\n";
+            }
+            elseif($codeMetaArr['type']=='注释'){
+                return $tabStr.'//'.$codeMetaArr['value'];
+            }
+            elseif($codeMetaArr['type']=='bool'){
+                return $codeMetaArr['data'];
+            }
+            elseif(in_array($codeMetaArr['type'],array('parent','break','continue','exit'))){
+                return $tabStr.$codeMetaArr['type'].($codeMetaArr['type']!=='parent'?"\n":'');
+            }
+            elseif($codeMetaArr['type']=='class'){
+                $return = $tabStr.'class '.$name;
+                foreach($codeMetaArr as $k=>$v){
+                    if(in_array($k,array('extends'))){
+                        $return.=' '.$k.' '.$v;
+                    }
+                }
+                $return .= "{\n";
+                foreach($codeMetaArr['child'] as $k=>$v){
+                    $return .= $this->_getCodeByCodeMeta($k,$v,$tab+1)."\n";
+                }
+                $return .= $tabStr."}\n";
+            }
+            elseif($codeMetaArr['type']=='property'){
+                $return = $tabStr;
+                foreach($codeMetaArr as $k=>$v){
+                    if( in_array($k, $this->dataTypeDesc['property']['desc']) ){
+                        $return .= $k.' ';
+                    }
+                }
+                $return.=$name;
+                if(isset($codeMetaArr['value'])){
+                    $return .= '=';
+                    $return .= $this->_getCodeByCodeMeta('',$codeMetaArr['value'],0);
+                }
+                $return.=";";
+            }
+            elseif($codeMetaArr['type']=='function'){
+                $return = $tabStr;
+                foreach($codeMetaArr as $key=>$value){
+                    if(in_array($key,$this->dataTypeDesc['function']['desc'])){
+                        if(isset($codeMetaArr[$key]) && $codeMetaArr[$key]==1){
+                            $return .= $key.' ';
+                        }
+                    }
+                }
+                $return .= 'function '.$name.'(';
+                if(isset($codeMetaArr['property'])){
+                    $return.=implode(',',$codeMetaArr['property']);
+                }
+                $return.="){\n";
+                foreach($codeMetaArr['child'] as $k=>$v){
+                    $return .= $this->_getCodeByCodeMeta($k,$v,$tab+1);
+                    if(isset($v['child']) || $v['type']=='注释'){
+                        $return .="\n";
+                    }else{
+                        $return .=";\n";
+                    }
+                }
+                $return.=$tabStr."}";
+            }
+            elseif(in_array($codeMetaArr['type'],array('if','else','elseif'))){
+                $return = $tabStr.$codeMetaArr['type'];
+                if($codeMetaArr['type']!='else'){
+                    $return .= '(';
+                    $return .= $this->_getCodeByCodeMeta('',$codeMetaArr['value'],0);
+                    $return .= ')';
+                }
+                $return .= "{\n";
+                foreach($codeMetaArr['child'] as $k=>$v){
+                    $return .= $this->_getCodeByCodeMeta('',$v,$tab+1);
+                    if(isset($v['child']) || $v['type']=='注释'){
+                        $return .="\n";
+                    }else{
+                        $return .=";\n";
+                    }
+                }
+                $return .= $tabStr."}";
+            }
+            elseif($codeMetaArr['type']=='构造函数'){
+                $return = $tabStr;
+                $return .= $this->_getCodeByCodeMeta('',$codeMetaArr['object'],0);
+                $return .= '::';
+                $return .= $codeMetaArr['name'];
+                $return .= '(';
+                foreach($codeMetaArr['property'] as $k=>$v){
+                    $return.= $this->_getCodeByCodeMeta('',$v,0);
+                }
+                $return .= ')';
+            }
+            elseif($codeMetaArr['type']=='父类'){
+                $return = $tabStr.$codeMetaArr['name'];
+            }
+            elseif($codeMetaArr['type']=='variable'){
+                $return = $codeMetaArr['name'];
+            }
+            elseif($codeMetaArr['type']=='string'){
+                if($codeMetaArr['borderStr']=='\''){
+                    $return = $tabStr.'\''.$codeMetaArr['data'].'\'';
+                }else{
+                    $return = $tabStr.'"'.$codeMetaArr['data'].'"';
+                }
+            }
+            elseif($codeMetaArr['type']=='objectParams'){
+                $return = $tabStr.$codeMetaArr['object']['name'].'->'.$codeMetaArr['name'];
+            }
+            elseif($codeMetaArr['type']=='return'){
+                $return = $tabStr.'return '.$this->_getCodeByCodeMeta('',$codeMetaArr['value'],0);
+            }
+            elseif(in_array($codeMetaArr['type'],array('=','==','===','>=','<=','!=','!==','<','>','.','+','-','.=','&&','||','[]='))){
+                $return = $tabStr.$this->_getCodeByCodeMeta('',$codeMetaArr['object1'],0);
+                $return .= $codeMetaArr['type'];
+                $return .= $this->_getCodeByCodeMeta('',$codeMetaArr['object2'],0);
+            }
+            elseif(in_array($codeMetaArr['type'],array('staticFunction','objectFunction','__construct'))){
+                $return = $tabStr.$this->_getCodeByCodeMeta('',$codeMetaArr['object'],0);
+
+                $return .= $codeMetaArr['type']=='objectFunction'?'->':'::';
+                $return .=$codeMetaArr['name'];
+                if(isset($codeMetaArr['property'])){
+                    $allParams = array();
+                    foreach($codeMetaArr['property'] as $param){
+                        $allParams[] = $this->_getCodeByCodeMeta('',$param,0);
+                    }
+                    $return .= '('.implode(',',$allParams).')';
+                }else{
+                    $return .= '()';
+                }
+            }
+            elseif($codeMetaArr['type']=='functionCall'){
+                $return = $tabStr.$this->_getCodeByCodeMeta('',$codeMetaArr['name'],0);
+                if(isset($codeMetaArr['property'])){
+                    $allParams = array();
+                    foreach($codeMetaArr['property'] as $param){
+                        $allParams[] = $this->_getCodeByCodeMeta('',$param,0);
+                    }
+                    $return .= '('.implode(',',$allParams).')';
+                }else{
+                    $return .= '()';
+                }
+            }
+            elseif($codeMetaArr['type']=='new'){
+                $return = $tabStr.'new '.$this->_getCodeByCodeMeta('',$codeMetaArr['className'],0);
+                if(isset($codeMetaArr['property'])){
+                    $allParams = array();
+                    foreach($codeMetaArr['property'] as $param){
+                        $allParams[] = $this->_getCodeByCodeMeta('',$param,0);
+                    }
+                    $return .= '('.implode(',',$allParams).')';
+                }else{
+                    $return .= '()';
+                }
+            }
+            elseif($codeMetaArr['type']=='foreach'){
+                $return = $tabStr.'foreach(';
+                $return .=$this->_getCodeByCodeMeta('',$codeMetaArr['object'],0);
+                $return .=' as ';
+                if(isset($codeMetaArr['key'])){
+                    $return .=$this->_getCodeByCodeMeta('',$codeMetaArr['key'],0).' =>';
+                }
+                $return .=$this->_getCodeByCodeMeta('',$codeMetaArr['value'],0)."){\n";
+                foreach($codeMetaArr['child'] as $child){
+                    $return .=$this->_getCodeByCodeMeta('',$child,$tab+1);
+                    if(isset($child['child']) || $child['type']=='注释'){
+                        $return .="\n";
+                    }else{
+                        $return .=";\n";
+                    }
+                }
+                $return .= $tabStr.'}';
+            }
+            elseif($codeMetaArr['type']=='arrayGet'){
+                $return = $tabStr.$this->_getCodeByCodeMeta('',$codeMetaArr['object'],0);
+                $return .= '['.$tabStr.$this->_getCodeByCodeMeta('',$codeMetaArr['key'],0).']';
+            }
+            elseif($codeMetaArr['type']=='!'){
+                $return = $tabStr.'!'.$this->_getCodeByCodeMeta('',$codeMetaArr['value'],0);
+            }
+            elseif(in_array($codeMetaArr['type'],array('throw','echo'))){
+                $return = $tabStr.$codeMetaArr['type'].' '.$this->_getCodeByCodeMeta('',$codeMetaArr['value'],0);
+            }
+            elseif($codeMetaArr['type']=='array'){
+                if(empty($codeMetaArr['child'])){
+                    $return = 'array()';
+                }else{
+                    $return = 'array(';
+                    foreach($codeMetaArr['child'] as $k=>$child){
+                        if($k!=0){
+                            $return .= ',';
+                        }
+                        $return .= $this->_getCodeByCodeMeta('',$child,0);
+                    }
+                    $return .= ')';
+                }
+            }
+            elseif(in_array($codeMetaArr['type'],array('int','8int'))){
+                $return = $tabStr.$codeMetaArr['data'];
+            }
+            elseif($codeMetaArr['type']=='arrayValue'){
+                $return = $tabStr.$this->_getCodeByCodeMeta('',$codeMetaArr['key'],0).'=>';
+                $return .= $tabStr.$this->_getCodeByCodeMeta('',$codeMetaArr['value'],0);
+            }
+            else{
+//                print_r($codeMetaArr);exit;
+                return '!!'.$codeMetaArr['type'];
+//                var_dump('遇到了暂时没有解析的类型');
+//                var_dump($codeMetaArr['type']);
+//                print_r($codeMetaArr);
+//                exit;
+            }
+        }elseif(is_string($codeMetaArr)){
+            $return = $codeMetaArr;
+        }
+        return $return;
+    }
+    public function getCodeByCodeMeta($codeMetaArr){
+        return $this->_getCodeByCodeMeta('',$codeMetaArr,0);
+    }
     private function searchInsetStr($endStr=false){
         $temp = '';
 
@@ -91,10 +330,14 @@ final class phpInterpreter{
         }
         $arrayTemp = array(
             array('==','>=','<=','!=','->','&&','::','=>','[]','.=','//','/*','*/','++','--'),
-            array('===','!=='),
+            array('===','!==','[]='),
         );
 
         while(count($this->codeArr)>0){
+            //去除掉空格
+            while($this->codeArr[0]==' '){
+                array_shift($this->codeArr);
+            }
             if(isset($arrayTemp[strlen($temp)-1]) && in_array($temp.$this->codeArr[0],$arrayTemp[strlen($temp)-1])){
                 $temp = $temp.$this->codeArr[0];
                 array_shift($this->codeArr);
@@ -109,12 +352,12 @@ final class phpInterpreter{
                 array_shift($this->codeArr);
                 array_shift($this->codeArr);
                 array_shift($this->codeArr);
-                return '<?php';
+                $temp = '<?php';
             }
         }
         if($temp=='?' && $this->codeArr[0]=='>'){
             array_shift($this->codeArr);
-            return '?>';
+            $temp = '?>';
         }
         if($putBack){
             $this->codeArrPre = $temp;
@@ -141,6 +384,7 @@ final class phpInterpreter{
     );
     private $dataTypeDesc2 = array();//runEnvironment下desc分布
     private $actionShunxu = array(
+        //越靠上越优先计算
         '->',
         'new',
         '(',
@@ -151,6 +395,8 @@ final class phpInterpreter{
         '&&', '||',
         '?',
         '.=',
+        '=',
+        '[]=',
         ',',
         ']',
         ')',
@@ -185,10 +431,11 @@ final class phpInterpreter{
             }
             elseif($nextKeyWord=='/*'){
                 $childYunxingshi = array(
-                    'type'=>'注释',
+                    'type'=>'注释段',
                     'value'=>''
                 );
                 do{
+//                    $nextKeyWord = $this->searchInsetStr($nextKeyWord);
                     $nextKeyWord = $this->forward();
                     if($nextKeyWord!=="*/"){
                         $childYunxingshi['value'].=$nextKeyWord;
@@ -226,7 +473,7 @@ final class phpInterpreter{
                     if($type=='property'){
                         $keyName = $nextKeyWord;
                         if($this->forward()=='='){
-                            $childResult['value'] = $this->temp('codeBlock','',';');
+                            $childResult['value'] = current($this->temp('codeBlock','',';'));
                         }
                     }
                     elseif($type=='class'){
@@ -254,13 +501,6 @@ final class phpInterpreter{
                         }
                         $childResult['child'] = $this->temp($type,'{','}');
                     }
-                    elseif($nextKeyWord=='='){
-                        $childYunxingshi['type'] = '=';
-                        $childYunxingshi['name'] = $zancun[count($zancun)-1];
-                        var_dump('hear');exit;
-                        $childResult['child'] = $this->temp($childYunxingshi['type']);
-                        $return[] = $childResult;
-                    }
                     $return[$keyName] = $childResult;
                 }
                 //运算代码
@@ -278,7 +518,7 @@ final class phpInterpreter{
                             if($nextWord!='('){
                                 throw new Exception('if后面必须得跟着(');
                             }
-                            $childResult['value'] = $this->temp('code','',')',true);
+                            $childResult['value'] = current($this->temp('code','',')',true));
                             $ddd = $this->forward();
                             if($ddd!=')'){
                                 throw new Exception('if条件后面必须得跟着{');
@@ -288,16 +528,17 @@ final class phpInterpreter{
                             $childResult['child'] = $this->temp($nextKeyWord,'','}');
                         }
                     }
+                    elseif($nextKeyWord=='<?php'){
+                        $childResult = array(
+                            'type'=>'phpBegin',
+                        );
+                    }
                     elseif($nextKeyWord=='new'){
                         $childResult = array(
-                            'type'=>'创建对象',
-                            'className'=>$this->temp('code','',$this->afterShunxu($nextKeyWord),true)
+                            'type'=>$nextKeyWord,
+                            'className'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord),true))
                         );
                         if($this->forward()!='('){
-                            print_r($childResult);
-                            print_r($this->afterShunxu($nextKeyWord));
-                            var_dump($this->forward(true));
-                            print_r($this->codeArr);
                             throw new Exception('new后面必须跟着(');
                         }
                         if($this->forward(true)==')'){
@@ -312,34 +553,34 @@ final class phpInterpreter{
                     }
                     elseif($nextKeyWord=='throw'){
                         $childResult = array(
-                            'type'=>'抛出throw',
-                            'value'=>$this->temp('code','',';'),
+                            'type'=>$nextKeyWord,
+                            'value'=>current($this->temp('code','',';')),
                         );
                     }
                     elseif($nextKeyWord=='echo'){
                         $childResult = array(
-                            'type'=>'echo输出',
-                            'value'=>$this->temp('codeBlock','',';')
+                            'type'=>$nextKeyWord,
+                            'value'=>current($this->temp('code','',';'))
                         );
                     }
                     elseif($nextKeyWord=='exit'){
                         $childResult = array(
-                            'type'=>'exit退出',
+                            'type'=>$nextKeyWord,
                         );
                     }
                     elseif($nextKeyWord=='foreach'){
                         $childResult = array(
                             'type'=>$nextKeyWord,
                         );
-                        $childResult['object'] = $this->temp('code','(','as');
+                        $childResult['object'] = current($this->temp('code','(','as'));
                         $this->forward();
                         $next = $this->temp('code','',array('=>',')'));
                         if($this->forward(true)=='=>'){
-                            $childResult['key'] = $next;
+                            $childResult['key'] = current($next);
                             $this->forward();
-                            $childResult['value'] = $this->temp('codeBlock','',')');
+                            $childResult['value'] = current($this->temp('codeBlock','',')'));
                         }else{
-                            $childResult['value'] = $next;
+                            $childResult['value'] = current($next);
                             $this->forward();
                         }
                         $childResult['child'] = $this->temp($nextKeyWord,'{','}',true);
@@ -363,11 +604,6 @@ final class phpInterpreter{
                         $childResult['value'] = $this->temp('code','(',')');
                         $this->forward();
                     }
-                    elseif(in_array($nextKeyWord,array('break','continue'))){
-                        $childResult = array(
-                            'type'=>$nextKeyWord,
-                        );
-                    }
                     elseif($nextKeyWord=='('){
                         if(count($return)>0){
                             $obj = $return[count($return)-1];
@@ -382,13 +618,10 @@ final class phpInterpreter{
                                     $this->forward();
                                 }else{
                                     do{
-                                        $canshuArr[] = $this->temp('code','',array(',',')'));
+                                        $canshuArr[] = current($this->temp('code','',array(',',')')));
                                     }while($this->forward()==',');
                                 }
-                                $childResult['property'] = array(
-                                    'type'=>'codeBlock',
-                                    'child'=>$canshuArr,
-                                );
+                                $childResult['property'] = $canshuArr;
                             }else{
                                 $childResult = array(
                                     'type' => 'codeBlock',
@@ -421,32 +654,27 @@ final class phpInterpreter{
                         }while(substr($string,-1)=='\\' && substr($string,-2)!=='\\\\');
                         $childResult = array(
                             'type'=>'string',
-                            'value'=>$string
+                            'borderStr'=>$nextKeyWord,
+                            'data'=>$string
                         );
 
                     }
                     elseif(in_array($nextKeyWord,array('&&','||'))){
-                        $childResult = array(
-                            'type'=>$nextKeyWord=='&&'?'and':'or',
-                            'name'=>$nextKeyWord
-                        );
-                    }
-                    elseif($nextKeyWord=='[]'){
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult = array(
-                            'type'=>'数组追加',
-                            'object'=>$obj,
-                            'name'=>$this->temp('codeBlock','=',';')
+                            'type'=>$nextKeyWord,
+                            'object1'=>$obj,
+                            'object2'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord))),
                         );
                     }
-                    elseif($nextKeyWord=='.='){
+                    elseif($nextKeyWord=='[]='){
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult = array(
-                            'type'=>'字符串追加',
-                            'object'=>$obj,
-                            'object2'=>$this->temp('code','',$this->afterShunxu($nextKeyWord))
+                            'type'=>$nextKeyWord,
+                            'object1'=>$obj,
+                            'object2'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord))),
                         );
                     }
                     elseif($nextKeyWord=='?'){
@@ -459,30 +687,6 @@ final class phpInterpreter{
                             'object2'=>$this->temp('code',':',$this->afterShunxu($nextKeyWord))
                         );
 //                        print_r($childResult);
-                    }
-                    elseif($nextKeyWord == 'array'){
-                        $childResult = array(
-                            'type'=>$nextKeyWord,
-                            'child'=>$this->temp('array','(',')'),
-                        );
-                    }
-                    elseif($yunxingshiType=='array'){
-                        if($nextKeyWord =='=>'){
-                            $obj = $return[count($return)-1];
-                            array_pop($return);
-                            $childResult = array(
-                                'type'=>'arrayValue',
-                                'key'=>$obj,
-                                'value'=>$this->temp('code','',array(',',')')),
-                            );
-                            if($this->forward(true)==','){
-                                $this->forward();
-                            }
-                        }elseif($nextKeyWord==','){
-                            if($this->forward(true)!==')'){
-                                continue;
-                            }
-                        }
                     }
                     elseif(in_array($nextKeyWord,array('->','::'))){
                         $obj = $return[count($return)-1];
@@ -502,9 +706,9 @@ final class phpInterpreter{
                         ){
                             //因为有些运算的优先级高于(,比如new,这时候不能尝试作为函数运行,而要作为属性返回,再执行new的参数
                             if($childResult['name']=='__construct'){
-                                $childResult['type'] = '构造函数';
+                                $childResult['type'] = $childResult['name'];
                             }else{
-                                $childResult['type'] = $nextKeyWord=='->'?'执行对象方法':'执行类方法';
+                                $childResult['type'] = $nextKeyWord=='->'?'objectFunction':'staticFunction';
                             }
                             $this->forward();
                             if($this->forward(true)==')'){
@@ -517,78 +721,43 @@ final class phpInterpreter{
                                 $childResult['property'] = $canshuArr;//$this->temp('codeBlock','(',')');
                             }
                         }else{
-                            $childResult['type'] = $nextKeyWord=='->'?'对象属性':'类静态属性';
+                            $childResult['type'] = $nextKeyWord=='->'?'objectParams':'staticParams';
                         }
                     }
-                    elseif(in_array($nextKeyWord,array('==','===','>=','<=','!==','!=','>','<'))){
-                        $obj = $return[count($return)-1];
-                        array_pop($return);
-                        $title = array(
-                            '=='=>'相等',
-                            '==='=>'完全相等',
-                            '>='=>'大于等于',
-                            '<='=>'小于等于',
-                            '>'=>'大于',
-                            '<'=>'小于',
-                            '!=='=>'不完全等于',
-                            '!='=>'不等于',
-                        );
-                        $childResult = array(
-                            'type'=>$title[$nextKeyWord],
-                            'object1'=>$obj,
-                            'object2'=>$this->temp('code','',$this->afterShunxu($nextKeyWord))
-                        );
-                    }
-                    elseif($nextKeyWord=='.'){
+                    //$1运算符$2,类型的运算
+                    elseif(in_array($nextKeyWord,array('==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult = array(
-                            'type'=>'字符串叠加',
+                            'type'=>$nextKeyWord,
                             'object1'=>$obj,
-                            'object2'=>$this->temp('code','',$this->afterShunxu($nextKeyWord))
-                        );
-                    }
-                    elseif(in_array($nextKeyWord,array('+','-'))){
-                        $obj = $return[count($return)-1];
-                        $title = array(
-                            '+'=>'相加',
-                            '-'=>'相减',
-                        );
-                        array_pop($return);
-                        $childResult = array(
-                            'type'=>$title[$nextKeyWord],
-                            'object1'=>$obj,
-                            'object2'=>$this->temp('code','',$this->afterShunxu($nextKeyWord))
-                        );
-                    }
-                    elseif($nextKeyWord=='='){
-                        $obj = $return[count($return)-1];
-                        array_pop($return);
-                        $childResult = array(
-                            'type'=>'赋值',
-                            'object1'=>$obj,
-                            'object2'=>$this->temp('code','',array(';',')'))
+                            'object2'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord)))
                         );
                     }
                     elseif($nextKeyWord=='!'){
                         $childResult = array(
-                            'type'=>'非',
-                            'value'=>$this->temp('code','',$this->afterShunxu($nextKeyWord))
+                            'type'=>$nextKeyWord,
+                            'value'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord)))
                         );
                     }
                     elseif(in_array($nextKeyWord,array('true','false'))){
                         $childResult = array(
                             'type'=>'bool',
-                            'name'=>$nextKeyWord
+                            'data'=>$nextKeyWord
+                        );
+                    }
+                    elseif(in_array($nextKeyWord,array('break','continue'))){
+                        $childResult = array(
+                            'type'=>$nextKeyWord,
                         );
                     }
                     elseif($nextKeyWord=='['){
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult = array(
-                            'type'=>'数组某一项',
+                            'type'=>'arrayGet',
                             'object'=>$obj,
-                            'key'=>$this->temp('code','',']'),
+                            'key'=>current($this->temp('code','',']')),
                         );
                         $this->forward();
                     }
@@ -602,15 +771,13 @@ final class phpInterpreter{
                     }
                     elseif($nextKeyWord=='parent'){
                         $childResult = array(
-                            'type'=>'父类',
-                            'name'=>$nextKeyWord
+                            'type'=>$nextKeyWord,
                         );
                     }
                     elseif($nextKeyWord=='return'){
                         $childResult = array(
-                            'type'=>'返回',
-                            'name'=>$nextKeyWord,
-                            'value'=>$this->temp('codeBlock','',';')
+                            'type'=>$nextKeyWord,
+                            'value'=>current($this->temp('codeBlock','',';'))
                         );
                     }
                     elseif(substr($nextKeyWord,0,1)=='$'){
@@ -621,15 +788,39 @@ final class phpInterpreter{
                     }
                     elseif(preg_match('/0(\d+)/',$nextKeyWord,$match)){
                         $childResult = array(
-                            'type'=>'8进制数字',
-                            'child'=>$match[0],
+                            'type'=>'8int',
+                            'data'=>$match[0],
                         );
                     }
                     elseif(preg_match('/(\d+)/',$nextKeyWord,$match)){
                         $childResult = array(
-                            'type'=>'整数',
-                            'child'=>$match[0],
+                            'type'=>'int',
+                            'data'=>$match[0],
                         );
+                    }
+                    elseif($nextKeyWord == 'array'){
+                        $childResult = array(
+                            'type'=>$nextKeyWord,
+                            'child'=>$this->temp('array','(',')'),
+                        );
+                    }
+                    elseif($yunxingshiType=='array'){
+                        if($nextKeyWord =='=>'){
+                            $obj = $return[count($return)-1];
+                            array_pop($return);
+                            $childResult = array(
+                                'type'=>'arrayValue',
+                                'key'=>$obj,
+                                'value'=>current($this->temp('code','',array(',',')'))),
+                            );
+                            if($this->forward(true)==','){
+                                $this->forward();
+                            }
+                        }elseif($nextKeyWord==','){
+                            if($this->forward(true)!==')'){
+                                continue;
+                            }
+                        }
                     }
                     elseif($this->forward(true)==='(' && ((is_array($endStr) && !in_array('(',$endStr)) || (!is_array($endStr) && $endStr!='('))){
                         $childResult = array(
@@ -642,24 +833,26 @@ final class phpInterpreter{
                             $this->forward();
                         }else{
                             do{
-                                $canshuArr[] = $this->temp('code','',array(',',')'));
+                                $canshuArr[] = current($this->temp('code','',array(',',')')));
                             }while($this->forward()==',');
                         }
-                        $childResult['property'] = array(
-                            'type'=>'codeBlock',
-                            'child'=>$canshuArr,
-                        );
+                        $childResult['property'] = $canshuArr;
                     }
+
                     else{
                         if($nextKeyWord==false){
                             break;
                         }
-                        if(!in_array($nextKeyWord,array(';'))){
+                        if(in_array($nextKeyWord,array(';'))){
+//                            continue;
 //                            var_dump($nextKeyWord);
                         }
                         $childResult = $nextKeyWord;
+
                     }
-                    $return[] = $childResult;
+                    if($childResult!==';'){
+                        $return[] = $childResult;
+                    }
                 }
             }
             //类型结束符号

@@ -143,35 +143,12 @@ class classAction extends ReflectionClass{
             $temp = get_called_class();
             return new $temp($this->getName());
         }
-//
-//
-//        $content = @file($this->getFileName());
-//        $code = implode('',array_slice($content,$this->getStartLine()-1,$this->getEndLine()-$this->getStartLine()+1));
-//        foreach(array(
-//                    'isAbstract'=>'abstract',
-//                    'isFinal'=>'final'
-//                ) as $k=>$v){
-//            if(isset($this->functionState[$k])){
-//                $preg = '/(((public|private|protected|abstract|final|static)\s*?)*)\s*function\s*(\S*)\(/';
-//                preg_match($preg,$code,$match);
-//                $functionAbs = explode(' ',$match[1]);
-//                if(!in_array('abstract',$functionAbs) && $this->functionState[$k]==true){
-//                    $functionAbs[] = $v;
-//                }elseif(in_array('abstract',$functionAbs) && $this->functionState[$k]==false){
-//
-//                }
-//                $code = preg_replace($preg,implode(' ',$functionAbs).' function $4(',$code);
-//            }
-//        }
-//        array_splice($content,$this->getStartLine()-1,$this->getEndLine()-$this->getStartLine()+1,$code);
-//        $content = implode("\n",$content);
-//        file_put_contents($this->getFileName(),$content);
     }
     public function getMethods($filter = null){
         $methods = parent::getMethods($filter);
         $returnArr = array();
         foreach($methods as $v){
-            $returnArr[] = new functionAction($v->class,$v->name);
+            $returnArr[]= new functionAction($v->class,$v->name);
         }
         return $returnArr;
     }
