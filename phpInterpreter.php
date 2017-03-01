@@ -6,15 +6,9 @@
  * Time: 上午11:52
  */
 final class phpInterpreter{
-    /*添加属性
-     * $contrast为null的时候,$positionType的before和after代表添加到类的和开始或最后
-     * $contrast不为null的时候,$positionType的before和after代表添加到$contrast的和开始或最后
-     */
-    public function setProperty($key,$value,$positionType='after',$contrast=null){
-
-    }
     private $codeArr;
     private $codeArrPre ='';
+    //把php代码提取成meta数据信息
     public function getCodeMetaByCode($code){
         $temp = array();
         foreach($this->dataTypeDesc as $v){
@@ -36,6 +30,11 @@ final class phpInterpreter{
             'child'=>$this->temp('window','')
         );
     }
+    //把meta信息还原成php代码
+    public function getCodeByCodeMeta($codeMetaArr){
+        return $this->_getCodeByCodeMeta('',$codeMetaArr,0);
+    }
+
     private function getTabStr($tab){
         $return = '';
         for($i=0;$i<$tab;$i++){
@@ -272,9 +271,7 @@ final class phpInterpreter{
         }
         return $return;
     }
-    public function getCodeByCodeMeta($codeMetaArr){
-        return $this->_getCodeByCodeMeta('',$codeMetaArr,0);
-    }
+
     private function searchInsetStr($endStr=false){
         $temp = '';
 
