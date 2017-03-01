@@ -6,10 +6,12 @@
  * Time: 上午11:52
  */
 final class phpInterpreter{
+    private $savedCode;
     private $codeArr;
     private $codeArrPre ='';
     //把php代码提取成meta数据信息
     public function getCodeMetaByCode($code){
+        $this->savedCode = $code;
         $temp = array();
         foreach($this->dataTypeDesc as $v){
             foreach($v['runEnvironment'] as $runEnvironment){
@@ -403,7 +405,7 @@ final class phpInterpreter{
         $copy = $this->actionShunxu;
         return array_splice($copy,array_search($key,$this->actionShunxu)+1);
     }
-    public function temp($yunxingshiType,$beginStr,$endStr=false,$test=false){
+    public function temp($yunxingshiType,$beginStr,$endStr=false){
         $return = array();
         $zancun = array();//用于描述关键词的一些关键词
         if($beginStr!==''){
@@ -515,7 +517,7 @@ final class phpInterpreter{
                             if($nextWord!='('){
                                 throw new Exception('if后面必须得跟着(');
                             }
-                            $childResult['value'] = current($this->temp('code','',')',true));
+                            $childResult['value'] = $this->temp('code','',')',true);
                             $ddd = $this->forward();
                             if($ddd!=')'){
                                 throw new Exception('if条件后面必须得跟着{');
@@ -533,7 +535,7 @@ final class phpInterpreter{
                     elseif($nextKeyWord=='new'){
                         $childResult = array(
                             'type'=>$nextKeyWord,
-                            'className'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord),true))
+                            'className'=>$this->temp('code','',$this->afterShunxu($nextKeyWord),true)
                         );
                         if($this->forward()!='('){
                             throw new Exception('new后面必须跟着(');
@@ -542,8 +544,7 @@ final class phpInterpreter{
                             $this->forward();
                         }else{
                             do{
-                                $item = $this->temp('code','',array(',',')'));
-                                $canshuArr[] = $item[0];
+                                $canshuArr[] = $this->temp('code','',array(',',')'));
                             }while($this->forward()==',');
                             $childResult['property'] = $canshuArr;
                         }
@@ -551,13 +552,13 @@ final class phpInterpreter{
                     elseif($nextKeyWord=='throw'){
                         $childResult = array(
                             'type'=>$nextKeyWord,
-                            'value'=>current($this->temp('code','',';')),
+                            'value'=>$this->temp('code','',';'),
                         );
                     }
                     elseif($nextKeyWord=='echo'){
                         $childResult = array(
                             'type'=>$nextKeyWord,
-                            'value'=>current($this->temp('code','',';'))
+                            'value'=>$this->temp('code','',';')
                         );
                     }
                     elseif($nextKeyWord=='exit'){
@@ -569,15 +570,15 @@ final class phpInterpreter{
                         $childResult = array(
                             'type'=>$nextKeyWord,
                         );
-                        $childResult['object'] = current($this->temp('code','(','as'));
+                        $childResult['object'] = $this->temp('code','(','as');
                         $this->forward();
                         $next = $this->temp('code','',array('=>',')'));
                         if($this->forward(true)=='=>'){
-                            $childResult['key'] = current($next);
+                            $childResult['key'] = $next;
                             $this->forward();
                             $childResult['value'] = current($this->temp('codeBlock','',')'));
                         }else{
-                            $childResult['value'] = current($next);
+                            $childResult['value'] = $next;
                             $this->forward();
                         }
                         $childResult['child'] = $this->temp($nextKeyWord,'{','}',true);
@@ -615,7 +616,7 @@ final class phpInterpreter{
                                     $this->forward();
                                 }else{
                                     do{
-                                        $canshuArr[] = current($this->temp('code','',array(',',')')));
+                                        $canshuArr[] = $this->temp('code','',array(',',')'));
                                     }while($this->forward()==',');
                                 }
                                 $childResult['property'] = $canshuArr;
@@ -662,7 +663,7 @@ final class phpInterpreter{
                         $childResult = array(
                             'type'=>$nextKeyWord,
                             'object1'=>$obj,
-                            'object2'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord))),
+                            'object2'=>$this->temp('code','',$this->afterShunxu($nextKeyWord)),
                         );
                     }
                     elseif($nextKeyWord=='[]='){
@@ -671,7 +672,7 @@ final class phpInterpreter{
                         $childResult = array(
                             'type'=>$nextKeyWord,
                             'object1'=>$obj,
-                            'object2'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord))),
+                            'object2'=>$this->temp('code','',$this->afterShunxu($nextKeyWord)),
                         );
                     }
                     elseif($nextKeyWord=='?'){
@@ -683,7 +684,6 @@ final class phpInterpreter{
                             'object1'=>$this->temp('code','',':'),
                             'object2'=>$this->temp('code',':',$this->afterShunxu($nextKeyWord))
                         );
-//                        print_r($childResult);
                     }
                     elseif(in_array($nextKeyWord,array('->','::'))){
                         $obj = $return[count($return)-1];
@@ -712,10 +712,9 @@ final class phpInterpreter{
                                 $this->forward();
                             }else{
                                 do{
-                                    $item = $this->temp('code','',array(',',')'));
-                                    $canshuArr[] = $item[0];
+                                    $canshuArr[] = $this->temp('code','',array(',',')'));
                                 }while($this->forward()==',');
-                                $childResult['property'] = $canshuArr;//$this->temp('codeBlock','(',')');
+                                $childResult['property'] = $canshuArr;
                             }
                         }else{
                             $childResult['type'] = $nextKeyWord=='->'?'objectParams':'staticParams';
@@ -728,13 +727,13 @@ final class phpInterpreter{
                         $childResult = array(
                             'type'=>$nextKeyWord,
                             'object1'=>$obj,
-                            'object2'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord)))
+                            'object2'=>$this->temp('code','',$this->afterShunxu($nextKeyWord))
                         );
                     }
                     elseif($nextKeyWord=='!'){
                         $childResult = array(
                             'type'=>$nextKeyWord,
-                            'value'=>current($this->temp('code','',$this->afterShunxu($nextKeyWord)))
+                            'value'=>$this->temp('code','',$this->afterShunxu($nextKeyWord))
                         );
                     }
                     elseif(in_array($nextKeyWord,array('true','false'))){
@@ -754,7 +753,7 @@ final class phpInterpreter{
                         $childResult = array(
                             'type'=>'arrayGet',
                             'object'=>$obj,
-                            'key'=>current($this->temp('code','',']')),
+                            'key'=>$this->temp('code','',']'),
                         );
                         $this->forward();
                     }
@@ -808,7 +807,7 @@ final class phpInterpreter{
                             $childResult = array(
                                 'type'=>'arrayValue',
                                 'key'=>$obj,
-                                'value'=>current($this->temp('code','',array(',',')'))),
+                                'value'=>$this->temp('code','',array(',',')')),
                             );
                             if($this->forward(true)==','){
                                 $this->forward();
@@ -830,7 +829,7 @@ final class phpInterpreter{
                             $this->forward();
                         }else{
                             do{
-                                $canshuArr[] = current($this->temp('code','',array(',',')')));
+                                $canshuArr[] = $this->temp('code','',array(',',')'));
                             }while($this->forward()==',');
                         }
                         $childResult['property'] = $canshuArr;
@@ -856,7 +855,8 @@ final class phpInterpreter{
             $nextKeyWord = $this->forward(true);
             if($yunxingshiType=='code'){
                 if($nextKeyWord === $endStr || $nextKeyWord===false || (is_array($endStr) && in_array($nextKeyWord,$endStr))){
-                    break;
+                    return $childResult;
+//                    break;
                 }
             }
             if($nextKeyWord === $endStr || $nextKeyWord===false || (is_array($endStr) && in_array($nextKeyWord,$endStr))){
