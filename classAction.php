@@ -183,6 +183,14 @@ class classAction extends ReflectionClass{
         $content = preg_replace("/(\s*)(final\s+|abstract\s+)?class/","\n$2class",$content);
         return $content;
     }
+    /**
+     * 添加属性
+     * $contrast为null的时候,$positionType的before和after代表添加到类的和开始或最后
+     * $contrast不为null的时候,$positionType的before和after代表添加到$contrast的和开始或最后
+     */
+    public function setProperty($key,$value,$positionType='after',$contrast=null){
+
+    }
 }
 class functionAction extends ReflectionMethod{
     public function __construct($class, $name)
