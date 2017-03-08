@@ -72,6 +72,7 @@ final class phpInterpreter{
                 do{
                     $childYunxingshi['value'] .= $this->searchInsetStr('/').'/';
                 }while(substr($childYunxingshi['value'],-2)!=='*/');
+                $childYunxingshi['value'] = substr($childYunxingshi['value'],0,-2);
                 $return[] = $childYunxingshi;
             }
             else{
@@ -440,7 +441,6 @@ final class phpInterpreter{
     //把meta信息还原成php代码
     public function getCode(){
         $codeMetaArr = $this->codeMeta;
-        $codeMetaArr = $this->savedCodeMeta;
         $createdCode = $this->getCodeByCodeMeta($codeMetaArr,0);
         //如果含义相同,但是格式与源代码格式不一致,则以源代码为准
         return $createdCode;
@@ -525,8 +525,12 @@ final class phpInterpreter{
                 }
                 $return.=$codeMetaArr['name'];
                 if(isset($codeMetaArr['value'])){
-                    $return .= '=';
-                    $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
+                    $return .= ' = ';
+                    if(isset($codeMetaArr['value']['child'])){
+                        $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],$tab);
+                    }else{
+                        $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
+                    }
                 }
                 $return.=";";
             }
@@ -681,19 +685,25 @@ final class phpInterpreter{
                     $return = 'array(';
                     foreach($codeMetaArr['child'] as $k=>$child){
                         if($k!=0){
-                            $return .= ',';
+                            $return .= ",\n";
+                        }else{
+                            $return .= "\n";
                         }
-                        $return .= $this->getCodeByCodeMeta($child,0);
+                        $return .= $this->getCodeByCodeMeta($child,$tab+1);
                     }
-                    $return .= ')';
+                    $return .= "\n".$tabStr.')';
                 }
             }
             elseif(in_array($codeMetaArr['type'],array('int','8int'))){
                 $return = $tabStr.$codeMetaArr['data'];
             }
             elseif($codeMetaArr['type']=='arrayValue'){
-                $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['key'],0).'=>';
-                $return .= $tabStr.$this->getCodeByCodeMeta($codeMetaArr['value'],0);
+                $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['key'],0).' => ';
+                if(isset($codeMetaArr['value']['child'])){
+                    $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],$tab);
+                }else{
+                    $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
+                }
             }
             else{
 //                print_r($codeMetaArr);exit;
@@ -805,11 +815,11 @@ final class phpInterpreter{
         ),
         'function'=>array(
             'runEnvironment'=>array('window','class'),
-            'desc'=>array('private','public','static','final'),
+            'desc'=>array('private','protected','public','static','final'),
         ),
         'property'=>array(
             'runEnvironment'=>array('class'),
-            'desc'=>array('private','public','static'),
+            'desc'=>array('private','protected','public','static'),
         ),
         'codeBlock'=>array(
             'runEnvironment'=>array('window','property'),
