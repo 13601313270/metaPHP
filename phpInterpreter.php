@@ -70,8 +70,8 @@ final class phpInterpreter{
                     'value'=>''
                 );
                 do{
-                    $childYunxingshi['value'] .= $this->searchInsetStr('/');
-                }while(substr($childYunxingshi['value'],-1)!=='*');
+                    $childYunxingshi['value'] .= $this->searchInsetStr('/').'/';
+                }while(substr($childYunxingshi['value'],-2)!=='*/');
                 $return[] = $childYunxingshi;
             }
             else{
