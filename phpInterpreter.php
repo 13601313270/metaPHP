@@ -438,6 +438,22 @@ final class phpInterpreter{
         }
         return $return;
     }
+    public function search($searchStr,$callBack){
+        $searchStr = explode(' ',$searchStr);
+        $baseMetaArr = &$this->codeMeta;
+        foreach($searchStr as $v){
+            if(substr($v,0,1)=='#'){
+                foreach($baseMetaArr['child'] as $kk=>$vv){
+                    if(isset($vv['name']) && $vv['name']==substr($v,1)){
+                        $baseMetaArr = &$baseMetaArr['child'][$kk];
+                    }
+                }
+            }else{
+                $baseMetaArr = &$baseMetaArr[$v];
+            }
+        }
+        $callBack($baseMetaArr);
+    }
     //把meta信息还原成php代码
     public function getCode(){
         $codeMetaArr = $this->codeMeta;
