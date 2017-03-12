@@ -474,6 +474,15 @@ final class phpInterpreter{
                 foreach($baseMetaArr['child'] as $kk=>$vv){
                     if(isset($vv['name']) && $vv['name']==substr($v,1)){
                         $baseMetaArr = &$baseMetaArr['child'][$kk];
+                        break;
+                    }
+                }
+            }elseif(substr($v,0,1)=='.'){
+                $copy = $baseMetaArr['child'];
+                foreach($copy as $kk=>$vv){
+                    if(isset($vv['type']) && $vv['type']==substr($v,1)){
+                        $baseMetaArr = &$baseMetaArr['child'][$kk];
+                        break;
                     }
                 }
             }else{
