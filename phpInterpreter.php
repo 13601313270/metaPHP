@@ -466,7 +466,7 @@ final class phpInterpreter{
      * 字符串用空格分割了层级
      *  # 字符串代表了查找子程序name查找
      **/
-    public function search($searchStr,$callBack){
+    public function search($searchStr){
         $searchStr = explode(' ',$searchStr);
         $baseMetaArr = &$this->codeMeta;
         foreach($searchStr as $v){
@@ -489,7 +489,7 @@ final class phpInterpreter{
                 $baseMetaArr = &$baseMetaArr[$v];
             }
         }
-        $callBack($baseMetaArr);
+        return $baseMetaArr;
     }
     /*
      * 把meta信息还原成php代码
