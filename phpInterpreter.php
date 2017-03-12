@@ -8,14 +8,13 @@
 final class phpInterpreter{
     private $savedCode;
     private $codeArr;
-    private $savedCodeMeta;
     public $codeMeta;
     private $codeArrPre ='';
-    //把php代码提取成meta数据信息
     public function __construct($code)
     {
         $this->savedCode = $code;
         $temp = array();
+        //生成运行时下可以的描述符
         foreach($this->dataTypeDesc as $v){
             foreach($v['runEnvironment'] as $runEnvironment){
                 foreach($v['desc'] as $desc){
@@ -29,43 +28,51 @@ final class phpInterpreter{
             }
         }
         $this->dataTypeDesc2 = $temp;
+        //代码拆分成字符数组
         $this->codeArr = str_split($code);
+        //解析php代码,转换成数据化的元代码(数组形式)
         $this->codeMeta = array(
             'type'=>'window',
             'child'=>$this->_getCodeMetaByCode('window','')
         );
         $this->codeArr = str_split($code);
-        $this->savedCodeMeta = $this->codeMeta;
     }
-    private $pp = 0;
+    /*
+     * php代码解释器
+     *
+     * @param yunxingshiType 运行所在环境
+     * @param beginStr 段落开始符
+     * @param beginStr 段落结束符
+     * @return array
+     **/
     public function _getCodeMetaByCode($yunxingshiType,$beginStr,$endStr=false){
         $return = array();
         $zancun = array();//用于描述关键词的一些关键词
+        //如果规定了begin字符,则必须遵守
         if($beginStr!==''){
             $temp = $this->forward();
             if($temp!==$beginStr){
                 throw new Exception($yunxingshiType.'必须由'.$beginStr.'开始结构'.'现在是'.$temp);
             }
         }
+        //验证梭子是否到代码结尾,或者到规定的运行时结束符
         $nextKeyWord = $this->forward(true);
         if($nextKeyWord === $endStr || $nextKeyWord===false || (is_array($endStr) && in_array($nextKeyWord,$endStr))){
             $this->forward();
             return $return;
         }
         while(true){
-            $beginPos = strlen($this->savedCode)-count($this->codeArr)-mb_strlen($this->codeArrPre);
-            $nextKeyWord = $this->forward();
+            $nextKeyWord = $this->forward();//梭子获取下一个词语
             //注释
             if($nextKeyWord=='//'){
                 $return[] = array(
-                    'begin'=>$beginPos,
                     'type'=>'comment',
                     'value'=> $this->searchInsetStr("\n")
                 );
             }
+            //注释段
             elseif($nextKeyWord=='/*'){
                 $childYunxingshi = array(
-                    'begin'=>$beginPos,
                     'type'=>'comments',
                     'value'=>''
                 );
@@ -76,6 +83,7 @@ final class phpInterpreter{
                 $return[] = $childYunxingshi;
             }
             else{
+                //当前是否是类属性(在class运行时,并且关键词带有$符号)
                 $isClassProperty = ($yunxingshiType=='class'&&substr($nextKeyWord,0,1)=='$')?true:false;
                 //前置修饰关键词
                 if(isset($this->dataTypeDesc2[$yunxingshiType]) && in_array($nextKeyWord,$this->dataTypeDesc2[$yunxingshiType])){
@@ -86,7 +94,6 @@ final class phpInterpreter{
                 elseif(isset($this->dataTypeDesc[$isClassProperty?'property':$nextKeyWord]) && in_array($yunxingshiType,$this->dataTypeDesc[$isClassProperty?'property':$nextKeyWord]['runEnvironment'])){
                     $type = $isClassProperty?'property':$nextKeyWord;
                     $childResult = array(
-                        'begin'=>$beginPos,
                         'type'=>$type
                     );
                     //取出暂存的描述符
@@ -107,6 +114,7 @@ final class phpInterpreter{
                             $childResult['value'] = current($this->_getCodeMetaByCode('codeBlock','',';'));
                         }
                     }
+                    //定义类
                     elseif($type=='class'){
                         $keyName = $this->forward();
                         $childResult['name'] = $keyName;
@@ -121,13 +129,14 @@ final class phpInterpreter{
                         }while($keyTemp!=='{');
                         $childResult['child'] = $this->_getCodeMetaByCode($type,'','}');
                     }
+                    //定义函数
                     elseif($type=='function'){
                         $keyName = $this->forward();
                         $childResult['name'] = $keyName;
                         if($this->forward()!=='('){
                             throw new Exception('函数名后面带上()参数');
                         }
-                        //参数
+                        //函数参数
                         $canshu = $this->searchInsetStr(')');
                         if(!empty($canshu)){
                             $childResult['property'] = explode(',',$canshu);
@@ -138,9 +147,7 @@ final class phpInterpreter{
                 }
                 //运算代码
                 else{
-                    $childResult = array(
-                        'begin'=>$beginPos
-                    );
+                    $childResult = array();
                     if(in_array($nextKeyWord,array('if','else','elseif'))){
                         $nextWord = $this->forward();
                         if($nextKeyWord=='else' && $nextWord=='if'){
@@ -226,7 +233,8 @@ final class phpInterpreter{
                     elseif($nextKeyWord=='('){
                         if(count($return)>0){
                             $obj = $return[count($return)-1];
-                            if($obj['type']=='variable' && $obj['name']=='$autoLoadClass'){
+                            if($obj['type']=='variable'){
+                                //变量后面带 "(" 说明是函数调用
                                 array_pop($return);
                                 $childResult['type'] = 'functionCall';
                                 $childResult['name'] = $obj;
@@ -255,10 +263,12 @@ final class phpInterpreter{
                         }
                     }
                     elseif($nextKeyWord=='{'){
+                        //{}包裹的代码段
                         $childResult['type'] = 'codeBlock';
                         $childResult['child'] = $this->_getCodeMetaByCode('codeBlock','','}');
                     }
                     elseif(in_array($nextKeyWord,array("'",'"'))){
+                        //字符串变量
                         $string = '';
                         do{
                             $string .= $this->searchInsetStr($nextKeyWord);
@@ -268,6 +278,7 @@ final class phpInterpreter{
                         $childResult['data'] = $string;
                     }
                     elseif(in_array($nextKeyWord,array('&&','||'))){
+                        //bool运算符
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult['type'] = $nextKeyWord;
@@ -275,6 +286,7 @@ final class phpInterpreter{
                         $childResult['object2'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                     }
                     elseif($nextKeyWord=='[]='){
+                        //数组添加运算符
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult['type'] = $nextKeyWord;
@@ -282,6 +294,7 @@ final class phpInterpreter{
                         $childResult['object2'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                     }
                     elseif($nextKeyWord=='?'){
+                        //三元运算符
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult['type'] = '三元运算符';
@@ -290,6 +303,7 @@ final class phpInterpreter{
                         $childResult['object2'] = $this->_getCodeMetaByCode('code',':',$this->afterShunxu($nextKeyWord));
                     }
                     elseif(in_array($nextKeyWord,array('->','::'))){
+                        //雷属性或方法调用运算符
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult['object'] = $obj;
@@ -320,7 +334,7 @@ final class phpInterpreter{
                             $childResult['type'] = $nextKeyWord=='->'?'objectParams':'staticParams';
                         }
                     }
-                    //$1运算符$2,类型的运算
+                    //二元运算符($1运算符$2),类型的运算
                     elseif(in_array($nextKeyWord,array('==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                         $obj = $return[count($return)-1];
                         array_pop($return);
@@ -333,6 +347,7 @@ final class phpInterpreter{
                         $childResult['value'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                     }
                     elseif(in_array($nextKeyWord,array('true','false'))){
+                        //bool变量
                         $childResult['type'] = 'bool';
                         $childResult['data'] = $nextKeyWord;
                     }
@@ -340,6 +355,7 @@ final class phpInterpreter{
                         $childResult['type'] = $nextKeyWord;
                     }
                     elseif($nextKeyWord=='['){
+                        //数组取值运算符
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult['type'] = 'arrayGet';
@@ -347,13 +363,14 @@ final class phpInterpreter{
                         $childResult['key'] = $this->_getCodeMetaByCode('code','',']');
                         $this->forward();
                     }
-                    elseif($nextKeyWord =='--'){
+                    elseif(in_array($nextKeyWord,array('--','++'))){
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult['type'] = $nextKeyWord;
                         $childResult['object1'] = $obj;
                     }
                     elseif($nextKeyWord=='parent'){
+                        //父类
                         $childResult['type'] = $nextKeyWord;
                     }
                     elseif($nextKeyWord=='return'){
@@ -361,22 +378,27 @@ final class phpInterpreter{
                         $childResult['value'] = current($this->_getCodeMetaByCode('codeBlock','',';'));
                     }
                     elseif(substr($nextKeyWord,0,1)=='$'){
+                        //变量
                         $childResult['type'] = 'variable';
                         $childResult['name'] = $nextKeyWord;
                     }
                     elseif(preg_match('/0(\d+)/',$nextKeyWord,$match)){
+                        //8进制整数
                         $childResult['type'] = '8int';
                         $childResult['data'] = $match[0];
                     }
                     elseif(preg_match('/(\d+)/',$nextKeyWord,$match)){
+                        //10进制整数
                         $childResult['type'] = 'int';
                         $childResult['data'] = $match[0];
                     }
                     elseif($nextKeyWord == 'array'){
+                        //数组定义
                         $childResult['type'] = $nextKeyWord;
                         $childResult['child'] = $this->_getCodeMetaByCode('array','(',')');
                     }
                     elseif($yunxingshiType=='array'){
+                        //数组子值赋值
                         if($nextKeyWord =='=>'){
                             $obj = $return[count($return)-1];
                             array_pop($return);
@@ -393,6 +415,7 @@ final class phpInterpreter{
                         }
                     }
                     elseif($this->forward(true)==='(' && ((is_array($endStr) && !in_array('(',$endStr)) || (!is_array($endStr) && $endStr!='('))){
+                        //函数调用带有变量后面带着"("
                         $childResult['type'] = 'functionCall';
                         $childResult['name'] = $nextKeyWord;
                         $this->forward();
@@ -411,10 +434,7 @@ final class phpInterpreter{
                         if($nextKeyWord==false){
                             break;
                         }
-                        if(in_array($nextKeyWord,array(';'))){
-//                            continue;
-//                            var_dump($nextKeyWord);
-                        }
+                        if(in_array($nextKeyWord,array(';'))){ }
                         $childResult = $nextKeyWord;
 
                     }
@@ -428,7 +448,6 @@ final class phpInterpreter{
             if($yunxingshiType=='code'){
                 if($nextKeyWord === $endStr || $nextKeyWord===false || (is_array($endStr) && in_array($nextKeyWord,$endStr))){
                     return $childResult;
-//                    break;
                 }
             }
             if($nextKeyWord === $endStr || $nextKeyWord===false || (is_array($endStr) && in_array($nextKeyWord,$endStr))){
@@ -438,6 +457,15 @@ final class phpInterpreter{
         }
         return $return;
     }
+    /*
+     * 元代码模块查找
+     *
+     * @param searchStr 查找字符串
+     * @param callBack 回调方法
+     *
+     * 字符串用空格分割了层级
+     *  # 字符串代表了查找子程序name查找
+     **/
     public function search($searchStr,$callBack){
         $searchStr = explode(' ',$searchStr);
         $baseMetaArr = &$this->codeMeta;
@@ -454,39 +482,21 @@ final class phpInterpreter{
         }
         $callBack($baseMetaArr);
     }
-    //把meta信息还原成php代码
+    /*
+     * 把meta信息还原成php代码
+     *
+     * @return string
+     **/
     public function getCode(){
         $codeMetaArr = $this->codeMeta;
-        $createdCode = $this->getCodeByCodeMeta($codeMetaArr,0);
-        //如果含义相同,但是格式与源代码格式不一致,则以源代码为准
-        return $createdCode;
-//        $codePos2 = 0;
-//        if(!empty($this->savedCode)){
-//            $returnCode = '';
-//            for($codePos=0;$codePos<=strlen($this->savedCode)-1;$codePos++){
-//                $returnCode.=$this->savedCode[$codePos];
-//                if(in_array($this->savedCode[$codePos],array(''," ","\t","\n"))){
-//                    continue;
-//                }
-//                do{
-//                    $code2Word = $createdCode[$codePos2];
-//                    $codePos2++;
-//                }while(in_array($code2Word,array(''," ","\t","\n") ));
-//                if($this->savedCode[$codePos]!==$createdCode[$codePos2-1]){
-////                    print_r()
-//                    echo "\n=======true=======\n";
-//                    echo substr($this->savedCode,$codePos,30);
-//                    echo "\n=======wrong!!=======\n";
-//                    echo substr($createdCode,$codePos2-1,30);
-//                    exit;
-//                }
-//            }
-//            return $returnCode;
-//        }else{
-//            return $createdCode;
-//        }
+        return  $this->getCodeByCodeMeta($codeMetaArr,0);
     }
 
+    /*
+     * 生成对应的缩进符号
+     *
+     * @return string
+     **/
     private function getTabStr($tab){
         $return = '';
         for($i=0;$i<$tab;$i++){
@@ -494,6 +504,13 @@ final class phpInterpreter{
         }
         return $return;
     }
+    /*
+     * 元代码还原代码器
+     * @param codeMetaArr 元代码
+     * @param tab 缩进
+     *
+     * @return string
+     **/
     public function getCodeByCodeMeta($codeMetaArr,$tab){
         $tabStr = $this->getTabStr($tab);
         $return = '';
@@ -722,12 +739,8 @@ final class phpInterpreter{
                 }
             }
             else{
-//                print_r($codeMetaArr);exit;
+                //异常,上面写的没错的话,进入不到这里,这个只是监控上面代码写的对不对的报警
                 return '!!'.$codeMetaArr['type'];
-//                var_dump('遇到了暂时没有解析的类型');
-//                var_dump($codeMetaArr['type']);
-//                print_r($codeMetaArr);
-//                exit;
             }
         }elseif(is_string($codeMetaArr)){
             $return = $codeMetaArr;
@@ -735,6 +748,7 @@ final class phpInterpreter{
         return $return;
     }
 
+    //查找某个字符之前的代码并返回
     private function searchInsetStr($endStr=false){
         $temp = '';
 
@@ -748,7 +762,12 @@ final class phpInterpreter{
         }
         return $temp;
     }
-    //false自动前进,true使用完放回
+    /*
+     * php代码梭子
+     * 梭子会从php代码开始,逐步往最后移动,切出各种关键词
+     * @param putBack 是否停止前进(为true的时候,切出词语之后,梭子不往后移动)
+     * @return string
+     **/
     private function forward($putBack = false){
         if($this->codeArrPre!==''){
             $pre = $this->codeArrPre;
@@ -788,6 +807,7 @@ final class phpInterpreter{
             array_shift($this->codeArr);
             $temp.=$first;
         }
+        //多个关键词组合的复合关键词
         $arrayTemp = array(
             array('==','>=','<=','!=','->','&&','::','=>','[]','.=','//','/*','*/','++','--'),
             array('===','!==','[]='),
@@ -805,6 +825,7 @@ final class phpInterpreter{
                 break;
             }
         }
+        //  "<?php"  这个关键词的特殊匹配
         if($temp=='<'){
             $copy = $this->codeArr;
             if(implode('',array_splice($copy,0,4))=='?php'){
@@ -815,15 +836,22 @@ final class phpInterpreter{
                 $temp = '<?php';
             }
         }
+        /*  "?>"  这个关键词的特殊匹配 */
         if($temp=='?' && $this->codeArr[0]=='>'){
             array_shift($this->codeArr);
             $temp = '?>';
         }
+        //putBack为真的时候放到暂存池,以供下次使用
         if($putBack){
             $this->codeArrPre = $temp;
         }
         return $temp;
     }
+    /*
+     * 关键词所允许的运行时和允许的描述符
+     * 例如class只能出现在window运行时
+     * 例如class只能有final和abstract描述符
+     **/
     private $dataTypeDesc = array(
         'class'=>array(
             'runEnvironment'=>array('window'),
@@ -843,6 +871,7 @@ final class phpInterpreter{
         ),
     );
     private $dataTypeDesc2 = array();//runEnvironment下desc分布
+    //算法优先级
     private $actionShunxu = array(
         //越靠上越优先计算
         '->',
@@ -862,6 +891,7 @@ final class phpInterpreter{
         ')',
         ';',
     );
+    //返回某个算法符之后的算法符
     private function afterShunxu($key){
         $copy = $this->actionShunxu;
         return array_splice($copy,array_search($key,$this->actionShunxu)+1);
