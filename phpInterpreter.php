@@ -382,7 +382,7 @@ final class phpInterpreter{
                         $childResult['type'] = 'variable';
                         $childResult['name'] = $nextKeyWord;
                     }
-                    elseif(preg_match('/0(\d+)/',$nextKeyWord,$match)){
+                    elseif(preg_match('/^0(\d+)/',$nextKeyWord,$match)){
                         //8进制整数
                         $childResult['type'] = '8int';
                         $childResult['data'] = $match[0];
@@ -466,7 +466,32 @@ final class phpInterpreter{
      * 字符串用空格分割了层级
      *  # 字符串代表了查找子程序name查找
      **/
-    public function search($searchStr){
+    public function &search($searchStr){
+        $searchStr = explode(' ',$searchStr);
+        $baseMetaArr = &$this->codeMeta;
+        foreach($searchStr as $v){
+            if(substr($v,0,1)=='#'){
+                foreach($baseMetaArr['child'] as $kk=>$vv){
+                    if(isset($vv['name']) && $vv['name']==substr($v,1)){
+                        $baseMetaArr = &$baseMetaArr['child'][$kk];
+                        break;
+                    }
+                }
+            }elseif(substr($v,0,1)=='.'){
+                $copy = $baseMetaArr['child'];
+                foreach($copy as $kk=>$vv){
+                    if(isset($vv['type']) && $vv['type']==substr($v,1)){
+                        $baseMetaArr = &$baseMetaArr['child'][$kk];
+                        break;
+                    }
+                }
+            }else{
+                $baseMetaArr = &$baseMetaArr[$v];
+            }
+        }
+        return $baseMetaArr;
+    }
+    public function delete($searchStr){
         $searchStr = explode(' ',$searchStr);
         $baseMetaArr = &$this->codeMeta;
         foreach($searchStr as $v){
