@@ -7,49 +7,41 @@
  */
 class classAction extends ReflectionClass{
     private $isInFile = true;
+    private $isSysClass = false;
+    public $phpInterpreter;
     function __construct($name,$isInFile=true){
         if($isInFile){
             parent::__construct($name);
+            $this->filePath = parent::getFileName();
+            if($this->filePath!=null){
+                $content = implode('',@file($this->filePath));
+                $this->phpInterpreter = new phpInterpreter($content);
+            }else{
+                $this->isSysClass = true;
+            }
         }else{
             parent::__construct('stdClass');
+            $this->phpInterpreter = new phpInterpreter('');
+            $this->filePath = '';
         }
     }
     private $filePath;
     //获取文件路径
     public function getFileName(){
-        if($this->isInFile){
-            return parent::getFileName();
-        }else{
-            return $this->filePath;
-        }
+        return $this->filePath;
     }
-    private $__name;
     //获取类名
     public function getName(){
-        if($this->isInFile){
+        if($this->isSysClass){
             return parent::getName();
         }else{
-            return $this->__name;
+            return $this->phpInterpreter->search('.class name');
         }
     }
-    //关于继承和父类
-    private $parentClass;
     //获取父类
     public function getParentClass(){
-        if($this->isInFile) {
-            $temp = parent::getParentClass();
-            if($temp==false){
-                return false;
-            }
-            $parentClassName = $temp->getName();
-        }else{
-            if(empty($this->parentClass)){
-                return false;
-            }
-            $parentClassName = $this->parentClass;
-        }
-        $temp = get_called_class();
-        return new $temp($parentClassName);
+        $parentClassName =  $this->phpInterpreter->search('.class extends');
+        return new classAction($parentClassName,true);
     }
     private $__implements = array();
     //获取实现的接口
@@ -72,33 +64,40 @@ class classAction extends ReflectionClass{
      * @since 1.0
      * @return $this
      */
-    public static function createClass($name,$parentClass='',$implements='',$autoLoadClass){
+    public static function createClass($name,$parentClass='',$implements=''){
         if($parentClass!='' && !class_exists($parentClass)){
             throw new Exception('创建的类的父类不存在');
         }
         if($implements!='' && !interface_exists($implements)){
             throw new Exception('实现的接口不存在');
         }
-        if(!function_exists($autoLoadClass)){
-            throw new Exception('自动加载函数不存在');
-        }
-        $filePath = $autoLoadClass($name);
-        if(empty($filePath)){
-            throw new Exception('自动加载函数,找不到对应路径');
-        }
         $temp = get_called_class();
         $newCreateClass = new $temp($name,false);
-        $newCreateClass->isInFile = false;
-        $newCreateClass->filePath = $filePath;
-        $newCreateClass->__name = $name;
-        $newCreateClass->parentClass = $parentClass;
-        if($implements==''){
-            $newCreateClass->__implements = array();
-        }elseif(is_string($implements)){
-            $newCreateClass->__implements = array($implements);
-        }else{
-            $newCreateClass->__implements = $implements;
+        $newCreateClass->phpInterpreter->codeMeta['child'] = array(
+            array(
+                'type'=>'phpBegin',
+            ),
+            array(
+                'type'=>'comments',
+                'value'=>'*
+ * Created by PhpStorm.
+ * User: metaPHP
+ * Date: '.date('Y/m/d').'
+ * Time: '.date('H:i').'
+ '
+            ),
+            array(
+                'type'=>'class',
+                'name'=>$name,
+                'child'=>array(),
+            ),
+        );
+        $class = &$newCreateClass->phpInterpreter->search('#'.$name);
+        if($parentClass!==''){
+            $class['extends'] = $parentClass;
         }
+        $newCreateClass->isInFile = false;
+//        $newCreateClass->filePath = $filePath;
         return $newCreateClass;
     }
     //获取函数的代码
@@ -108,41 +107,14 @@ class classAction extends ReflectionClass{
         echo implode('',array_slice($content,$method->getStartLine()-1,$method->getEndLine()-$method->getStartLine()+1));
     }
     public function save(){
-        if($this->isInFile){
-            echo 'exit;hear;';exit;
-        }else{
-            $code = "<?php
-/**
- * Created by metaPHP.
- * User: metaPHPRobot
- * Date: ".date('Y-m-d')."
- * Time: ".date('H:i:s')."
- */\n";
-            $code .= "class ".$this->getName();
-            if($this->getParentClass()!==false){
-                $code.= " extends ".$this->getParentClass()->getName();
-            }
-            $intefaceArr = $this->getInterfaceNames();
-            if(count($intefaceArr)>0){
-                $code.= " implements ".$intefaceArr[0];
-            }
-            $code .= "{\n";
-            $code .= "}";
-
-            $methods = $this->getMethods();
-            if(count($methods)>0){
-                echo 'hear;methods';exit;
-            }
-
-            $filePath = dirname($this->getFileName());
-            if(!is_dir($filePath)){
-                mkdir($filePath,0777,true);
-            }
-            file_put_contents($this->getFileName(),$code);
-
-            $temp = get_called_class();
-            return new $temp($this->getName());
+        $code = $this->phpInterpreter->getCode();
+        $filePath = dirname($this->getFileName());
+        if(!is_dir($filePath)){
+            mkdir($filePath,0777,true);
         }
+        file_put_contents($this->getFileName(),$code);
+        $temp = get_called_class();
+        return new $temp($this->getName());
     }
     public function getMethods($filter = null){
         $methods = parent::getMethods($filter);
@@ -161,35 +133,35 @@ class classAction extends ReflectionClass{
     }
     //移除
     public function remove(){
-        $content = @file($this->getFileName());
-        $startLine = $this->getStartLine();
-        $endLine = $this->getEndLine();
-        $code = implode('',array_slice($content,$startLine-1,$endLine-$startLine+1));
-        $content = implode('',$content);
-        $content = str_replace($code,'',$content);
-        $content = str_replace($this->getDocComment(),'',$content);
-        $content = $this->codeClean($content);
-        if(preg_match('/<\?php(\s*)$/',$content,$match)){
-            //如果删的什么都没有剩下,则整个文件删除掉
-            unlink($this->getFileName());
-        }else{
-            file_put_contents($this->getFileName(),$content);
+        $class = &$this->phpInterpreter->search('#'.$this->getName());
+        $class = null;
+        $ifHas = false;//是否还含有有用信息
+        foreach($this->phpInterpreter->codeMeta['child'] as $type){
+            if($type!=null && !in_array($type['type'],array('phpBegin','comments','comment'))){
+                $ifHas = true;
+            }
         }
-        echo $content;
-    }
-    //代码整理
-    private function codeClean($content){
-        $content = preg_replace("/<\?php(\s*)/","<?php\n",$content);
-        $content = preg_replace("/(\s*)(final\s+|abstract\s+)?class/","\n$2class",$content);
-        return $content;
+        if($ifHas){
+            //如果删的什么都没有剩下,则整个文件删除掉
+//            unlink($this->getFileName());
+        }else{
+//            file_put_contents($this->getFileName(),$content);
+        }
     }
     /**
      * 添加属性
      * $contrast为null的时候,$positionType的before和after代表添加到类的和开始或最后
      * $contrast不为null的时候,$positionType的before和after代表添加到$contrast的和开始或最后
      */
-    public function setProperty($key,$value,$positionType='after',$contrast=null){
-
+    public function setProperty($key,$value,$type){
+        $class = &$this->phpInterpreter->search('#'.$this->getName().' child');
+        $class[] = array(
+            'type'=>'property',
+            'name'=>'$'.$key,
+            $type=>true,
+            'value'=>$value
+        );
+        print_r($class);
     }
 }
 class functionAction extends ReflectionMethod{

@@ -133,6 +133,10 @@ final class phpInterpreter{
                     elseif($type=='function'){
                         $keyName = $this->forward();
                         $childResult['name'] = $keyName;
+                        if($keyName=='&'){
+                            $childResult['&'] = true;
+                            $childResult['name'] = $this->forward();
+                        }
                         if($this->forward()!=='('){
                             throw new Exception('函数名后面带上()参数');
                         }
@@ -160,8 +164,7 @@ final class phpInterpreter{
                                 throw new Exception('if后面必须得跟着(');
                             }
                             $childResult['value'] = $this->_getCodeMetaByCode('code','',')',true);
-                            $ddd = $this->forward();
-                            if($ddd!=')'){
+                            if($this->forward()!=')'){
                                 throw new Exception('if条件后面必须得跟着{');
                             }
                             $childResult['child'] = $this->_getCodeMetaByCode($nextKeyWord,'{','}');
@@ -271,7 +274,11 @@ final class phpInterpreter{
                         //字符串变量
                         $string = '';
                         do{
-                            $string .= $this->searchInsetStr($nextKeyWord);
+                            $appendStr = $this->searchInsetStr($nextKeyWord);
+                            if($appendStr==''){
+                                break;
+                            }
+                            $string .= $appendStr;
                         }while(substr($string,-1)=='\\' && substr($string,-2)!=='\\\\');
                         $childResult['type'] = 'string';
                         $childResult['borderStr'] = $nextKeyWord;
@@ -297,7 +304,7 @@ final class phpInterpreter{
                         //三元运算符
                         $obj = $return[count($return)-1];
                         array_pop($return);
-                        $childResult['type'] = '三元运算符';
+                        $childResult['type'] = '?:';
                         $childResult['value'] = $obj;
                         $childResult['object1'] = $this->_getCodeMetaByCode('code','',':');
                         $childResult['object2'] = $this->_getCodeMetaByCode('code',':',$this->afterShunxu($nextKeyWord));
@@ -523,7 +530,32 @@ final class phpInterpreter{
      **/
     public function getCode(){
         $codeMetaArr = $this->codeMeta;
-        return  $this->getCodeByCodeMeta($codeMetaArr,0);
+        return $this->getCodeByCodeMeta($codeMetaArr,0);
+//        $createdCode = $this->getCodeByCodeMeta($codeMetaArr,0);
+        $codePos2 = 0;
+        if(!empty($this->savedCode)){
+            $returnCode = '';
+            for($codePos=0;$codePos<=strlen($this->savedCode)-1;$codePos++){
+                $returnCode.=$this->savedCode[$codePos];
+                if(in_array($this->savedCode[$codePos],array(''," ","\t","\n"))){
+                    continue;
+                }
+                do{
+                    $code2Word = $createdCode[$codePos2];
+                    $codePos2++;
+                }while(in_array($code2Word,array(''," ","\t","\n") ));
+                if($this->savedCode[$codePos]!==$createdCode[$codePos2-1]){
+                    echo "\n=======true=======\n";
+                    echo substr($this->savedCode,$codePos,100);
+                    echo "\n=======wrong!!=======\n";
+                    echo substr($createdCode,$codePos2-1,100);
+                    exit;
+                }
+            }
+            return $returnCode;
+        }else{
+            return $createdCode;
+        }
     }
 
     /*
@@ -571,7 +603,13 @@ final class phpInterpreter{
                 return $tabStr.$codeMetaArr['type'].($codeMetaArr['type']!=='parent'?"\n":'');
             }
             elseif($codeMetaArr['type']=='class'){
-                $return = $tabStr.'class '.$codeMetaArr['name'];
+                $return = $tabStr;
+                foreach($codeMetaArr as $k=>$v){
+                    if(in_array($k,$this->dataTypeDesc['class']['desc'])){
+                        $return .= $k." ";
+                    }
+                }
+                $return .= 'class '.$codeMetaArr['name'];
                 foreach($codeMetaArr as $k=>$v){
                     if(in_array($k,array('extends'))){
                         $return.=' '.$k.' '.$v;
@@ -735,6 +773,32 @@ final class phpInterpreter{
                 }
                 $return .= $tabStr.'}';
             }
+            elseif($codeMetaArr['type']=='while'){
+                $return = $tabStr.'while(';
+                $return .=$this->getCodeByCodeMeta($codeMetaArr['value'],0)."){\n";
+                foreach($codeMetaArr['child'] as $child){
+                    $return .=$this->getCodeByCodeMeta($child,$tab+1);
+                    if(isset($child['child']) || $child['type']=='comment'){
+                        $return .="\n";
+                    }else{
+                        $return .=";\n";
+                    }
+                }
+                $return .= $tabStr.'}';
+            }
+            elseif($codeMetaArr['type']=='dowhile'){
+                $return = $tabStr."do{\n";
+                foreach($codeMetaArr['child'] as $child){
+                    $return .=$tabStr.$this->getCodeByCodeMeta($child,$tab+1);
+                    if(isset($child['child']) || $child['type']=='comment'){
+                        $return .="\n";
+                    }else{
+                        $return .=";\n";
+                    }
+                }
+                $return .= $tabStr.'}while(';
+                $return .=$this->getCodeByCodeMeta($codeMetaArr['value'],0).");";
+            }
             elseif($codeMetaArr['type']=='arrayGet'){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object'],0);
                 $return .= '['.$tabStr.$this->getCodeByCodeMeta($codeMetaArr['key'],0).']';
@@ -752,8 +816,9 @@ final class phpInterpreter{
                     $return = 'array(';
                     foreach($codeMetaArr['child'] as $k=>$child){
                         if($k!=0){
-                            $return .= ",\n";
-                        }else{
+                            $return .= ",";
+                        }
+                        if($child['type']!=='int'){
                             $return .= "\n";
                         }
                         $return .= $this->getCodeByCodeMeta($child,$tab+1);
@@ -772,6 +837,18 @@ final class phpInterpreter{
                     $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
                 }
             }
+            elseif($codeMetaArr['type']=='codeBlock'){
+                $return = $tabStr.'(';
+                foreach($codeMetaArr['child'] as $k=>$v){
+                    $return .= $this->getCodeByCodeMeta($v,0);
+                }
+                $return .=')';
+            }elseif($codeMetaArr['type']=='?:'){
+                $return = $tabStr;
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0).'?';
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['object1'],0).":";
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['object2'],0);
+            }
             else{
                 //异常,上面写的没错的话,进入不到这里,这个只是监控上面代码写的对不对的报警
                 return '!!'.$codeMetaArr['type'];
@@ -785,7 +862,6 @@ final class phpInterpreter{
     //查找某个字符之前的代码并返回
     private function searchInsetStr($endStr=false){
         $temp = '';
-
         while(count($this->codeArr)>0){
             $first = array_shift($this->codeArr);
             if($first!==$endStr){
