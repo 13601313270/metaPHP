@@ -193,7 +193,7 @@ final class phpInterpreter{
                     elseif($nextKeyWord=='throw'){
                         $childResult = array(
                             'type'=>$nextKeyWord,
-                            'value'=>$this->_getCodeMetaByCode('code','',';'),
+                            'value'=>$this->_getCodeMetaByCode('code','',';')
                         );
                     }
                     elseif($nextKeyWord=='echo'){
