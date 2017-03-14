@@ -37,6 +37,12 @@ final class phpInterpreter{
         );
         $this->codeArr = str_split($code);
     }
+    private function throwWrong($msg){
+        var_dump($msg);
+        $codeLast = array_splice($this->codeArr,0,200);
+        echo '错误定位:******     '.implode('',$codeLast)."\n";
+        throw new Exception($msg);
+    }
     /*
      * php代码解释器
      *
@@ -52,7 +58,7 @@ final class phpInterpreter{
         if($beginStr!==''){
             $temp = $this->forward();
             if($temp!==$beginStr){
-                throw new Exception($yunxingshiType.'必须由'.$beginStr.'开始结构'.'现在是'.$temp);
+                $this->throwWrong($yunxingshiType.'必须由'.$beginStr.'开始结构,现在是'.$temp);
             }
         }
         //验证梭子是否到代码结尾,或者到规定的运行时结束符
@@ -102,7 +108,7 @@ final class phpInterpreter{
                             if(in_array($v,$this->dataTypeDesc[$type]['desc'])){
                                 $childResult[$v] = true;
                             }else{
-                                throw new Exception($type.'类型不允许修饰符'.$v);
+                                $this->throwWrong($type.'类型不允许修饰符'.$v);
                             }
                         }
                         $zancun = array();
@@ -138,12 +144,26 @@ final class phpInterpreter{
                             $childResult['name'] = $this->forward();
                         }
                         if($this->forward()!=='('){
-                            throw new Exception('函数名后面带上()参数');
+                            $this->throwWrong('函数名后面带上()参数');
                         }
                         //函数参数
-                        $canshu = $this->searchInsetStr(')');
-                        if(!empty($canshu)){
-                            $childResult['property'] = explode(',',$canshu);
+                        $childResult['property'] = array();
+                        $childResult['propertyType'] = array();
+                        if($this->forward(true)!=')'){
+                            while($this->forward(true)!='{'){
+                                $nextWord = $this->forward(true);
+                                if(substr($nextWord,0,1)=='$'){
+                                    $childResult['propertyType'][] = '';
+                                    $childResult['property'][] = $this->_getCodeMetaByCode('code','',array(',',')'));
+                                }else{
+                                    $childResult['propertyType'][] = $nextWord;
+                                    $this->forward();
+                                    $childResult['property'][] = $this->_getCodeMetaByCode('code','',array(',',')'));
+                                }
+                                $this->forward();
+                            }
+                        }else{
+                            $this->forward();
                         }
                         $childResult['child'] = $this->_getCodeMetaByCode($type,'{','}');
                     }
@@ -161,11 +181,11 @@ final class phpInterpreter{
                         $childResult['type'] = $nextKeyWord;
                         if($nextKeyWord!='else'){
                             if($nextWord!='('){
-                                throw new Exception('if后面必须得跟着(');
+                                $this->throwWrong('if后面必须得跟着(');
                             }
                             $childResult['value'] = $this->_getCodeMetaByCode('code','',')',true);
                             if($this->forward()!=')'){
-                                throw new Exception('if条件后面必须得跟着{');
+                                $this->throwWrong('if条件后面必须得跟着{');
                             }
                             $childResult['child'] = $this->_getCodeMetaByCode($nextKeyWord,'{','}');
                         }else{
@@ -178,17 +198,31 @@ final class phpInterpreter{
                     elseif($nextKeyWord=='new'){
                         $childResult['type'] = $nextKeyWord;
                         $childResult['className'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord),true);
-                        if($this->forward()!='('){
-                            throw new Exception('new后面必须跟着(');
-                        }
-                        if($this->forward(true)==')'){
+                        if($this->forward(true)==';'){//new后面允许不带()
                             $this->forward();
                         }else{
-                            do{
-                                $canshuArr[] = $this->_getCodeMetaByCode('code','',array(',',')'));
-                            }while($this->forward()==',');
-                            $childResult['property'] = $canshuArr;
+                            if($this->forward()!='('){
+                                $this->throwWrong('new后面必须跟着(');
+                            }
+                            if($this->forward(true)==')'){
+                                $this->forward();
+                            }else{
+                                do{
+                                    $canshuArr[] = $this->_getCodeMetaByCode('code','',array(',',')'));
+                                }while($this->forward()==',');
+                                $childResult['property'] = $canshuArr;
+                            }
                         }
+                    }
+                    elseif($nextKeyWord=='try'){
+                        $childResult['type'] = 'try';
+                        $childResult['child'] = $this->_getCodeMetaByCode('codeBlock','{','}');
+                        if($this->forward()!='catch'){
+                            $this->throwWrong('try后面必须跟着catch');
+                        }
+                        $childResult['catch'] = $this->_getCodeMetaByCode('code','(',')');
+                        $this->forward();
+                        $childResult['catchChild'] = $this->_getCodeMetaByCode('codeBlock','{','}');
                     }
                     elseif($nextKeyWord=='throw'){
                         $childResult = array(
@@ -228,7 +262,7 @@ final class phpInterpreter{
                         $childResult['type'] = 'dowhile';
                         $childResult['child'] = $this->_getCodeMetaByCode('codeBlock','{','}');
                         if($this->forward()!='while'){
-                            throw new Exception('do循环后面必须加while条件');
+                            $this->throwWrong('do循环后面必须加while条件');
                         }
                         $childResult['value'] = $this->_getCodeMetaByCode('code','(',')');
                         $this->forward();
@@ -304,7 +338,7 @@ final class phpInterpreter{
                         //三元运算符
                         $obj = $return[count($return)-1];
                         array_pop($return);
-                        $childResult['type'] = '?:';
+                        $childResult['type'] = $nextKeyWord;
                         $childResult['value'] = $obj;
                         $childResult['object1'] = $this->_getCodeMetaByCode('code','',':');
                         $childResult['object2'] = $this->_getCodeMetaByCode('code',':',$this->afterShunxu($nextKeyWord));
@@ -376,7 +410,7 @@ final class phpInterpreter{
                         $childResult['type'] = $nextKeyWord;
                         $childResult['object1'] = $obj;
                     }
-                    elseif($nextKeyWord=='parent'){
+                    elseif(in_array($nextKeyWord,array('parent','self'))){
                         //父类
                         $childResult['type'] = $nextKeyWord;
                     }
@@ -388,6 +422,9 @@ final class phpInterpreter{
                         //变量
                         $childResult['type'] = 'variable';
                         $childResult['name'] = $nextKeyWord;
+                    }elseif($nextKeyWord=='&'){
+                        $childResult['type'] = '&';
+                        $childResult['value'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                     }
                     elseif(preg_match('/^0(\d+)/',$nextKeyWord,$match)){
                         //8进制整数
@@ -452,7 +489,9 @@ final class phpInterpreter{
             }
             //类型结束符号
             $nextKeyWord = $this->forward(true);
-            if($yunxingshiType=='code'){
+            if($yunxingshiType=='code2'){
+                print_r($endStr);exit;
+            } elseif($yunxingshiType=='code'){
                 if($nextKeyWord === $endStr || $nextKeyWord===false || (is_array($endStr) && in_array($nextKeyWord,$endStr))){
                     return $childResult;
                 }
@@ -599,8 +638,8 @@ final class phpInterpreter{
             elseif($codeMetaArr['type']=='bool'){
                 return $codeMetaArr['data'];
             }
-            elseif(in_array($codeMetaArr['type'],array('parent','break','continue','exit'))){
-                return $tabStr.$codeMetaArr['type'].($codeMetaArr['type']!=='parent'?"\n":'');
+            elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue','exit'))){
+                return $tabStr.$codeMetaArr['type'].(!in_array($codeMetaArr['type'],array('parent','self'))?"\n":'');
             }
             elseif($codeMetaArr['type']=='class'){
                 $return = $tabStr;
@@ -650,7 +689,15 @@ final class phpInterpreter{
                 }
                 $return .= 'function '.$codeMetaArr['name'].'(';
                 if(isset($codeMetaArr['property'])){
-                    $return.=implode(',',$codeMetaArr['property']);
+                    foreach($codeMetaArr['property'] as $k=>$v){
+                        if($k!=0){
+                            $return.=',';
+                        }
+                        if(!empty($codeMetaArr['propertyType'][$k])){
+                            $return .= $codeMetaArr['propertyType'][$k].' ';
+                        }
+                        $return.= $this->getCodeByCodeMeta($v,0);
+                    }
                 }
                 $return.="){\n";
                 foreach($codeMetaArr['child'] as $v){
@@ -843,13 +890,43 @@ final class phpInterpreter{
                     $return .= $this->getCodeByCodeMeta($v,0);
                 }
                 $return .=')';
-            }elseif($codeMetaArr['type']=='?:'){
+            }elseif($codeMetaArr['type']=='?'){
+                //三元运算符
                 $return = $tabStr;
                 $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0).'?';
                 $return .= $this->getCodeByCodeMeta($codeMetaArr['object1'],0).":";
                 $return .= $this->getCodeByCodeMeta($codeMetaArr['object2'],0);
+            }elseif($codeMetaArr['type']=='try'){
+                //三元运算符
+                $return = $tabStr."try{\n";
+                foreach($codeMetaArr['child'] as $k=>$v){
+                    $return .= $this->getCodeByCodeMeta($v,$tab+1);
+                    if(isset($v['child']) || $v['type']=='comment'){
+                        $return .="\n";
+                    }else{
+                        $return .=";\n";
+                    }
+                }
+                $return .= $tabStr.'}catch(';
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['catch'],$tab+1);
+                $return .= "){\n";
+                foreach($codeMetaArr['catchChild'] as $k=>$v){
+                    $return .= $this->getCodeByCodeMeta($v,$tab+1);
+                    if(isset($v['child']) || $v['type']=='comment'){
+                        $return .="\n";
+                    }else{
+                        $return .=";\n";
+                    }
+                }
+                $return .= $tabStr.'}';
+            }elseif($codeMetaArr['type']=='&'){
+                $return = '&';
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
+            }elseif($codeMetaArr['type']=='staticParams'){
+                $return = $this->getCodeByCodeMeta($codeMetaArr['object'],0).'::'.$codeMetaArr['type'];
             }
             else{
+
                 //异常,上面写的没错的话,进入不到这里,这个只是监控上面代码写的对不对的报警
                 return '!!'.$codeMetaArr['type'];
             }
@@ -984,6 +1061,7 @@ final class phpInterpreter{
     //算法优先级
     private $actionShunxu = array(
         //越靠上越优先计算
+        '&',
         '->',
         'new',
         '(',
@@ -992,10 +1070,11 @@ final class phpInterpreter{
         '+','-','.',
         '==', '===', '!==', '!=', '>=', '<=', '>', '<',
         '&&', '||',
-        '?',
         '.=',
         '=',
         '[]=',
+        '?',
+        ':',
         ',',
         ']',
         ')',
