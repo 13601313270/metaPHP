@@ -318,22 +318,6 @@ final class phpInterpreter{
                         $childResult['borderStr'] = $nextKeyWord;
                         $childResult['data'] = $string;
                     }
-                    elseif(in_array($nextKeyWord,array('&&','||'))){
-                        //bool运算符
-                        $obj = $return[count($return)-1];
-                        array_pop($return);
-                        $childResult['type'] = $nextKeyWord;
-                        $childResult['object1'] = $obj;
-                        $childResult['object2'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
-                    }
-                    elseif($nextKeyWord=='[]='){
-                        //数组添加运算符
-                        $obj = $return[count($return)-1];
-                        array_pop($return);
-                        $childResult['type'] = $nextKeyWord;
-                        $childResult['object1'] = $obj;
-                        $childResult['object2'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
-                    }
                     elseif($nextKeyWord=='?'){
                         //三元运算符
                         $obj = $return[count($return)-1];
@@ -377,7 +361,7 @@ final class phpInterpreter{
                         }
                     }
                     //二元运算符($1运算符$2),类型的运算
-                    elseif(in_array($nextKeyWord,array('==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
+                    elseif(in_array($nextKeyWord,array('&&','||','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                         $obj = $return[count($return)-1];
                         array_pop($return);
                         $childResult['type'] = $nextKeyWord;
@@ -761,7 +745,7 @@ final class phpInterpreter{
             elseif($codeMetaArr['type']=='return'){
                 $return = $tabStr.'return '.$this->getCodeByCodeMeta($codeMetaArr['value'],0);
             }
-            elseif(in_array($codeMetaArr['type'],array('=','==','===','>=','<=','!=','!==','<','>','.','+','-','.=','&&','||','[]='))){
+            elseif(in_array($codeMetaArr['type'],array('&&','||','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object1'],0);
                 $return .= $codeMetaArr['type'];
                 $value = $this->getCodeByCodeMeta($codeMetaArr['object2'],$tab);
@@ -1019,7 +1003,7 @@ final class phpInterpreter{
         }
         //多个关键词组合的复合关键词
         $arrayTemp = array(
-            array('==','>=','<=','!=','->','&&','::','=>','[]','.=','//','/*','*/','++','--'),
+            array('==','>=','<=','!=','->','&&','::','=>','[]','.=','//','/*','*/','++','--','+=','-='),
             array('===','!==','[]='),
         );
 
