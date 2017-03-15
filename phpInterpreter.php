@@ -366,6 +366,7 @@ final class phpInterpreter{
                             if($this->forward(true)==')'){
                                 $this->forward();
                             }else{
+                                $canshuArr = array();
                                 do{
                                     $canshuArr[] = $this->_getCodeMetaByCode('code','',array(',',')'));
                                 }while($this->forward()==',');
@@ -624,6 +625,11 @@ final class phpInterpreter{
                 $return = $tabStr;
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,0);
+                    if(isset($v['child']) || $v['type']=='comment'){
+                        $return .="\n";
+                    }else{
+                        $return .=";\n";
+                    }
                 }
             }
             elseif($codeMetaArr['type']=='phpBegin'){
@@ -670,11 +676,8 @@ final class phpInterpreter{
                 $return.=$codeMetaArr['name'];
                 if(isset($codeMetaArr['value'])){
                     $return .= ' = ';
-                    if(isset($codeMetaArr['value']['child'])){
-                        $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],$tab);
-                    }else{
-                        $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
-                    }
+                    $valuve = $this->getCodeByCodeMeta($codeMetaArr['value'],$tab);
+                    $return .= preg_replace('/^\s+/','',$valuve);
                 }
                 $return.=";";
             }
@@ -743,7 +746,7 @@ final class phpInterpreter{
                 $return = $tabStr.$codeMetaArr['name'];
             }
             elseif($codeMetaArr['type']=='variable'){
-                $return = $codeMetaArr['name'];
+                $return = $tabStr.$codeMetaArr['name'];
             }
             elseif($codeMetaArr['type']=='string'){
                 if($codeMetaArr['borderStr']=='\''){
@@ -761,17 +764,19 @@ final class phpInterpreter{
             elseif(in_array($codeMetaArr['type'],array('=','==','===','>=','<=','!=','!==','<','>','.','+','-','.=','&&','||','[]='))){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object1'],0);
                 $return .= $codeMetaArr['type'];
-                $return .= $this->getCodeByCodeMeta($codeMetaArr['object2'],0);
+                $value = $this->getCodeByCodeMeta($codeMetaArr['object2'],$tab);
+                $return .= preg_replace('/^\s+/','',$value);
             }
             elseif(in_array($codeMetaArr['type'],array('staticFunction','objectFunction','__construct'))){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object'],0);
 
                 $return .= $codeMetaArr['type']=='objectFunction'?'->':'::';
                 $return .=$codeMetaArr['name'];
+                $allParams = array();
                 if(isset($codeMetaArr['property'])){
-                    $allParams = array();
                     foreach($codeMetaArr['property'] as $param){
-                        $allParams[] = $this->getCodeByCodeMeta($param,0);
+                        $paramStr = $this->getCodeByCodeMeta($param,$tab);
+                        $allParams[] = preg_replace('/^'.$tabStr.'/','',$paramStr);
                     }
                     $return .= '('.implode(',',$allParams).')';
                 }else{
@@ -848,7 +853,7 @@ final class phpInterpreter{
             }
             elseif($codeMetaArr['type']=='arrayGet'){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object'],0);
-                $return .= '['.$tabStr.$this->getCodeByCodeMeta($codeMetaArr['key'],0).']';
+                $return .= '['.$this->getCodeByCodeMeta($codeMetaArr['key'],0).']';
             }
             elseif($codeMetaArr['type']=='!'){
                 $return = $tabStr.'!'.$this->getCodeByCodeMeta($codeMetaArr['value'],0);
@@ -858,19 +863,30 @@ final class phpInterpreter{
             }
             elseif($codeMetaArr['type']=='array'){
                 if(empty($codeMetaArr['child'])){
-                    $return = 'array()';
+                    $return = $tabStr.'array()';
                 }else{
-                    $return = 'array(';
+                    $return = $tabStr.'array(';
                     foreach($codeMetaArr['child'] as $k=>$child){
                         if($k!=0){
                             $return .= ",";
                         }
                         if($child['type']!=='int'){
-                            $return .= "\n";
+                            if(count($codeMetaArr['child'])!=1){
+                                $return .= "\n";
+                                $return .= $this->getCodeByCodeMeta($child,$tab+1);
+                            }else{
+                                $value = $this->getCodeByCodeMeta($child,$tab+1);
+                                $return .= preg_replace('/^\s+/','',$value);
+                            }
+                        }else{
+                            $return .= $this->getCodeByCodeMeta($child,0);
                         }
-                        $return .= $this->getCodeByCodeMeta($child,$tab+1);
                     }
-                    $return .= "\n".$tabStr.')';
+                    if(strpos($return,"\n")>-1 && count($codeMetaArr['child'])!=1){
+                        $return .= "\n";
+                        $return .= $tabStr;
+                    }
+                    $return .= ')';
                 }
             }
             elseif(in_array($codeMetaArr['type'],array('int','8int'))){
@@ -878,11 +894,8 @@ final class phpInterpreter{
             }
             elseif($codeMetaArr['type']=='arrayValue'){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['key'],0).' => ';
-                if(isset($codeMetaArr['value']['child'])){
-                    $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],$tab);
-                }else{
-                    $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
-                }
+                $value = $this->getCodeByCodeMeta($codeMetaArr['value'],$tab);
+                $return .= preg_replace('/^'.$tabStr.'/','',$value);
             }
             elseif($codeMetaArr['type']=='codeBlock'){
                 $return = $tabStr.'(';
@@ -890,13 +903,18 @@ final class phpInterpreter{
                     $return .= $this->getCodeByCodeMeta($v,0);
                 }
                 $return .=')';
-            }elseif($codeMetaArr['type']=='?'){
+            }
+            elseif($codeMetaArr['type']=='?'){
                 //三元运算符
                 $return = $tabStr;
-                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0).'?';
-                $return .= $this->getCodeByCodeMeta($codeMetaArr['object1'],0).":";
-                $return .= $this->getCodeByCodeMeta($codeMetaArr['object2'],0);
-            }elseif($codeMetaArr['type']=='try'){
+                $value = $this->getCodeByCodeMeta($codeMetaArr['value'],$tab).'?';
+                $return .= preg_replace('/^'.$tabStr.'/','',$value);
+                $object1 = $this->getCodeByCodeMeta($codeMetaArr['object1'],$tab).":";
+                $return .= preg_replace('/^'.$tabStr.'/','',$object1);
+                $object2 = $this->getCodeByCodeMeta($codeMetaArr['object2'],$tab);
+                $return .= preg_replace('/^'.$tabStr.'/','',$object2);
+            }
+            elseif($codeMetaArr['type']=='try'){
                 //三元运算符
                 $return = $tabStr."try{\n";
                 foreach($codeMetaArr['child'] as $k=>$v){
@@ -919,11 +937,16 @@ final class phpInterpreter{
                     }
                 }
                 $return .= $tabStr.'}';
-            }elseif($codeMetaArr['type']=='&'){
+            }
+            elseif($codeMetaArr['type']=='&'){
                 $return = '&';
                 $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
-            }elseif($codeMetaArr['type']=='staticParams'){
+            }
+            elseif($codeMetaArr['type']=='staticParams'){
                 $return = $this->getCodeByCodeMeta($codeMetaArr['object'],0).'::'.$codeMetaArr['type'];
+            }
+            elseif(in_array($codeMetaArr['type'],array('--','++'))){
+                $return = $this->getCodeByCodeMeta($codeMetaArr['object1'],0).$codeMetaArr['type'];
             }
             else{
 
