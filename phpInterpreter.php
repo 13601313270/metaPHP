@@ -509,11 +509,26 @@ final class phpInterpreter{
                     }
                 }
             }elseif(substr($v,0,1)=='.'){
-                $copy = $baseMetaArr['child'];
-                foreach($copy as $kk=>$vv){
+                foreach($baseMetaArr['child'] as $kk=>$vv){
                     if(isset($vv['type']) && $vv['type']==substr($v,1)){
                         $baseMetaArr = &$baseMetaArr['child'][$kk];
                         break;
+                    }
+                }
+            }elseif(substr($v,0,1)=='['){
+                $str = substr($v,1,-1);
+                $str = explode('=',$str);
+                foreach($baseMetaArr['child'] as $kk=>$vv){
+                    if(count($str)==2){
+                        if(isset($vv[$str[0]]) && $vv[$str[0]]==$str[1]){
+                            $baseMetaArr = &$baseMetaArr['child'][$kk];
+                            break;
+                        }
+                    }else{
+                        if(isset($vv[$str[0]])){
+                            $baseMetaArr = &$baseMetaArr['child'][$kk];
+                            break;
+                        }
                     }
                 }
             }else{
