@@ -492,76 +492,15 @@ final class phpInterpreter{
      * 元代码模块查找
      *
      * @param searchStr 查找字符串
-     * @param callBack 回调方法
      *
      * 字符串用空格分割了层级
      *  # 字符串代表了查找子程序name查找
      **/
-    public function &search($searchStr){
-        $searchStr = explode(' ',$searchStr);
-        $baseMetaArr = &$this->codeMeta;
-        foreach($searchStr as $v){
-            if(substr($v,0,1)=='#'){
-                foreach($baseMetaArr['child'] as $kk=>$vv){
-                    if(isset($vv['name']) && $vv['name']==substr($v,1)){
-                        $baseMetaArr = &$baseMetaArr['child'][$kk];
-                        break;
-                    }
-                }
-            }elseif(substr($v,0,1)=='.'){
-                foreach($baseMetaArr['child'] as $kk=>$vv){
-                    if(isset($vv['type']) && $vv['type']==substr($v,1)){
-                        $baseMetaArr = &$baseMetaArr['child'][$kk];
-                        break;
-                    }
-                }
-            }elseif(substr($v,0,1)=='['){
-                $str = substr($v,1,-1);
-                $str = explode('=',$str);
-                foreach($baseMetaArr['child'] as $kk=>$vv){
-                    if(count($str)==2){
-                        if(isset($vv[$str[0]]) && $vv[$str[0]]==$str[1]){
-                            $baseMetaArr = &$baseMetaArr['child'][$kk];
-                            break;
-                        }
-                    }else{
-                        if(isset($vv[$str[0]])){
-                            $baseMetaArr = &$baseMetaArr['child'][$kk];
-                            break;
-                        }
-                    }
-                }
-            }else{
-                $baseMetaArr = &$baseMetaArr[$v];
-            }
-        }
-        return $baseMetaArr;
+    public function search($searchStr){
+        $metaSearchApi = new metaSearch();
+        return $metaSearchApi->search($this->codeMeta,$searchStr);
     }
-    public function delete($searchStr){
-        $searchStr = explode(' ',$searchStr);
-        $baseMetaArr = &$this->codeMeta;
-        foreach($searchStr as $v){
-            if(substr($v,0,1)=='#'){
-                foreach($baseMetaArr['child'] as $kk=>$vv){
-                    if(isset($vv['name']) && $vv['name']==substr($v,1)){
-                        $baseMetaArr = &$baseMetaArr['child'][$kk];
-                        break;
-                    }
-                }
-            }elseif(substr($v,0,1)=='.'){
-                $copy = $baseMetaArr['child'];
-                foreach($copy as $kk=>$vv){
-                    if(isset($vv['type']) && $vv['type']==substr($v,1)){
-                        $baseMetaArr = &$baseMetaArr['child'][$kk];
-                        break;
-                    }
-                }
-            }else{
-                $baseMetaArr = &$baseMetaArr[$v];
-            }
-        }
-        return $baseMetaArr;
-    }
+
     /*
      * 把meta信息还原成php代码
      *
