@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: mfw
+ * User: 王浩然
  * Date: 2017/3/23
  * Time: 上午11:15
  */
@@ -34,10 +34,19 @@ class metaSearch{
     }
     private $findArr = array();
     function getArrSearchSingle($searchStr, &$arr){
+        list($search,$filter) = explode(':',$searchStr);
         if($this->isSearch($arr,$searchStr)){
             $this->findArr[] = $arr;
-        }elseif($arr[$searchStr]){
-            $this->findArr[] = &$arr[$searchStr];
+        }elseif($arr[$search]){
+            if($filter!=null){
+                if(preg_match('/filter\((.*)\)/',$filter,$match)){
+                    if($this->isSearch($arr[$search],$match[1])){
+                        $this->findArr[] = &$arr[$search];
+                    }
+                }
+            }else{
+                $this->findArr[] = &$arr[$search];
+            }
         }else{
             foreach ($arr as $key1=>&$value1) {
                 if($this->isSearch($value1,$searchStr)){
