@@ -33,7 +33,7 @@ class metaSearch{
         return $isSearch;
     }
     private $findArr = array();
-    function getArrSearchSingle($searchStr, &$arr){
+    private function getArrSearchSingle($searchStr, &$arr){
         list($search,$filter) = explode(':',$searchStr);
         if($this->isSearch($arr,$searchStr)){
             $this->findArr[] = $arr;
@@ -58,7 +58,7 @@ class metaSearch{
         }
         return $this->findArr;
     }
-    function getByArr($str,$arrList){
+    private function getByArr($str,$arrList){
         $returnArr = array();
         foreach($arrList as &$dom){
             $this->findArr = array();
