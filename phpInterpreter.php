@@ -497,8 +497,8 @@ final class phpInterpreter{
      *  # 字符串代表了查找子程序name查找
      **/
     public function search($searchStr){
-        $metaSearchApi = new metaSearch();
-        return $metaSearchApi->search($this->codeMeta,$searchStr);
+        $metaSearchApi = new metaSearch($this->codeMeta);
+        return $metaSearchApi->search($searchStr);
     }
 
     /*
