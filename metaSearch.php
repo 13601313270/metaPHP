@@ -7,7 +7,8 @@
  */
 class metaSearch{
     private function isSearch($dom,$search){
-        list($search,$filter) = explode(':',$search);
+        $searchSplit = explode(':',$search);
+        $search = $searchSplit[0];
         $isSearch = false;
         if(isset($dom['name']) && substr($search,0,1)=='#' && $dom['name']==substr($search,1)){
             $isSearch = true;
@@ -25,9 +26,11 @@ class metaSearch{
             }
         }
         //过滤器
-        if($isSearch && $filter){
-            if(preg_match('/filter\((.*)\)/',$filter,$match)){
-                $isSearch = $this->isSearch($dom,$match[1]);
+        if($isSearch && count($searchSplit)>1){
+            for($i=1;$i<count($searchSplit);$i++){
+                if(preg_match('/filter\((.*)\)/',$searchSplit[$i],$match)){
+                    $isSearch = $this->isSearch($dom,$match[1]);
+                }
             }
         }
         return $isSearch;
@@ -35,14 +38,23 @@ class metaSearch{
     private $findArr = array();
     private $findArrKey = array();
     private function getArrSearchSingle($searchStr, &$arr,$searchArr){
-        list($search,$filter) = explode(':',$searchStr);
+        $searchSplit = explode(':',$searchStr);
+        $search = $searchSplit[0];
         if($arr[$search]){
-            if($filter!=null){
-                if(preg_match('/filter\((.*)\)/',$filter,$match)){
-                    if($this->isSearch($arr[$search],$match[1])){
-                        $this->findArr[] = &$arr[$search];
-                        $this->findArrKey[] = array_merge($searchArr,array($search));
+            if(count($searchSplit)>1){
+                $isPassFilter = false;
+                for($i=1;$i<count($searchSplit);$i++){
+                    if(preg_match('/filter\((.*)\)/',$searchSplit[$i],$match)){
+                        if($this->isSearch($arr[$search],$match[1])){
+                            $isPassFilter = true;
+                        }else{
+                            $isPassFilter = false;
+                        }
                     }
+                }
+                if($isPassFilter){
+                    $this->findArr[] = &$arr[$search];
+                    $this->findArrKey[] = array_merge($searchArr,array($search));
                 }
             }else{
                 $this->findArr[] = &$arr[$search];
