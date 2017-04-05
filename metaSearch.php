@@ -45,11 +45,7 @@ class metaSearch{
                 $isPassFilter = false;
                 for($i=1;$i<count($searchSplit);$i++){
                     if(preg_match('/filter\((.*)\)/',$searchSplit[$i],$match)){
-                        if($this->isSearch($arr[$search],$match[1])){
-                            $isPassFilter = true;
-                        }else{
-                            $isPassFilter = false;
-                        }
+                        $isPassFilter = $this->isSearch($arr[$search],$match[1]);
                     }
                 }
                 if($isPassFilter){
