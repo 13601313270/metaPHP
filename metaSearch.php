@@ -46,6 +46,12 @@ class metaSearch{
                 for($i=1;$i<count($searchSplit);$i++){
                     if(preg_match('/filter\((.*)\)/',$searchSplit[$i],$match)){
                         $isPassFilter = $this->isSearch($arr[$search],$match[1]);
+                    }elseif(preg_match('/has\((.*)\)/',$searchSplit[$i],$match)){
+                        $newApi = new metaSearch($arr[$search]);
+                        $isPassFilter = count($newApi->search($match[1])->toArray())>0;
+                    }
+                    if($isPassFilter==false){
+                        break;
                     }
                 }
                 if($isPassFilter){
@@ -90,7 +96,9 @@ class metaSearch{
     public function search($sSearch){
         $baseArr = array(&$this->codeArr);
         $baseArrKey = array(array());
-        foreach(explode(' ',$sSearch) as $str){
+        $sSearch = $sSearch.' ';
+        preg_match_all('/(\S+?(:\S+\(object .variable\))?)\s/',$sSearch,$match);
+        foreach($match[1] as $str){
             $result = $this->getByArr($str,$baseArr,$baseArrKey);
             $baseArr = $result[0];
             $baseArrKey = $result[1];

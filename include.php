@@ -9,3 +9,4 @@ define('metaPHPRoot',dirname(__FILE__));//kod框架所在的地址
 include_once (metaPHPRoot.'/phpInterpreter.php');
 include_once (metaPHPRoot.'/classAction.php');
 include_once (metaPHPRoot.'/metaSearch.php');
+include_once (metaPHPRoot.'/githubAction.php');
