@@ -8,6 +8,7 @@
 abstract class githubAction{
     //正在运行的本地分支
     public $runLocalBranch = '';
+    public $originBranch = '';
     public $webRootDir = '';
     public $cachePath = '';
     public function __construct()
@@ -39,7 +40,7 @@ abstract class githubAction{
     }
     //分支还原
     public function branchClean(){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git stash;git checkout .;git reset HEAD;');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git stash;git checkout .;git reset --hard '.$this->originBranch);
         return $result;
     }
     //合并分支
