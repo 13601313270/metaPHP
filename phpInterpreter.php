@@ -563,7 +563,7 @@ final class phpInterpreter{
                 $return = $tabStr;
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,0);
-                    if(isset($v['child']) || $v['type']=='comment'){
+                    if(isset($v['child']) || in_array($v['type'],array('comment','comments','phpBegin'))){
                         $return .="\n";
                     }else{
                         $return .=";\n";
