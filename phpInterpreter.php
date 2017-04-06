@@ -688,8 +688,10 @@ final class phpInterpreter{
             }
             elseif($codeMetaArr['type']=='string'){
                 if($codeMetaArr['borderStr']=='\''){
+                    $codeMetaArr['data'] = str_replace("'",'\\\'',$codeMetaArr['data']);
                     $return = $tabStr.'\''.$codeMetaArr['data'].'\'';
                 }else{
+                    $codeMetaArr['data'] = str_replace('"','\\"',$codeMetaArr['data']);
                     $return = $tabStr.'"'.$codeMetaArr['data'].'"';
                 }
             }
