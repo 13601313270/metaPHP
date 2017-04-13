@@ -59,9 +59,14 @@ abstract class githubAction{
         $result = $this->exec('cd ' . $this->webRootDir . ';git push origin '.$this->runLocalBranch);
         $this->log('mergeBranch','提交代码;结果'.json_encode($result));
     }
+    //代码加入暂存区
+    public function add($filePath){
+        $result = $this->exec('cd ' . $this->webRootDir . ';git add '.$filePath);
+        $this->log('commit','加入暂存区;结果'.json_encode($result));
+    }
     //提交代码commit
     public function commit($message){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git add --all;git commit -m "'.$message.'"');
+        $result = $this->exec('cd ' . $this->webRootDir . ';git commit -m "'.$message.'"');
         $this->log('commit','提交代码;结果'.json_encode($result));
     }
     //执行命令
