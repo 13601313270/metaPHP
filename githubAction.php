@@ -27,16 +27,19 @@ abstract class githubAction{
         }else{
             $this->log('createBranch','创建分支:['.$name.'];结果'.json_encode($result));
         }
+        return $result;
     }
     //删除分支
     public function deleteBranch($name){
         $result = $this->exec('cd ' . $this->webRootDir . ';git branch -D '.$name);
         $this->log('deleteBranch','删除分支:['.$name.'];结果'.json_encode($result));
+        return $result;
     }
     //切换分支
     public function checkout($name){
         $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$name);
         $this->log('createBranch','创建分支:'.$name.';结果'.json_encode($result));
+        return $result;
     }
     //分支还原
     public function branchClean(){
@@ -47,33 +50,37 @@ abstract class githubAction{
     public function mergeBranch($branchName){
         $result = $this->exec('cd ' . $this->webRootDir . ';git merge --no-ff '.$branchName);
         $this->log('mergeBranch','合并分支:'.$branchName.';结果'.json_encode($result));
+        return $result;
     }
     //更新绑定分支代码
     public function pull(){
         //写日志
         $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull;git submodule update');
         $this->log('githubReceive',json_encode($result));
+        return $result;
     }
     //推送代码push
     public function push(){
         $result = $this->exec('cd ' . $this->webRootDir . ';git push origin '.$this->runLocalBranch);
         $this->log('mergeBranch','提交代码;结果'.json_encode($result));
+        return $result;
     }
     //代码加入暂存区
     public function add($filePath){
         $result = $this->exec('cd ' . $this->webRootDir . ';git add '.$filePath);
         $this->log('commit','加入暂存区;结果'.json_encode($result));
+        return $result;
     }
     //提交代码commit
     public function commit($message){
         $result = $this->exec('cd ' . $this->webRootDir . ';git commit -m "'.$message.'"');
         $this->log('commit','提交代码;结果'.json_encode($result));
+        return $result;
     }
     //执行命令
     public function exec($line){
         $result = array();
         exec($line.' 2>&1',$result);
-        print_r($result);
         return $result;
     }
     //记录日志
