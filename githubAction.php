@@ -43,8 +43,17 @@ abstract class githubAction{
     }
     //分支还原
     public function branchClean(){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout .;git reset --hard '.$this->originBranch);
-        return $result;
+        $result = $this->exec('cd ' . $this->webRootDir . ';git branch -vv');
+        foreach($result as $branch){
+            if(substr($branch,0,1)=='*'){
+                if(preg_match('/\* (\S+) (\S+) \[(\S+)\] (\S+)/',$branch,$match)){
+                    $orignBranch = $match[3];
+                    return $this->exec('cd ' . $this->webRootDir . ';git checkout .;git reset --hard '.$orignBranch);
+                }
+
+            }
+        }
+        return false;
     }
     //合并分支
     public function mergeBranch($branchName){
