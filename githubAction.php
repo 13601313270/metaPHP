@@ -53,9 +53,16 @@ abstract class githubAction{
         return $result;
     }
     //更新绑定分支代码
-    public function pull(){
+    //isHoldWrite是否保留已经修改的工作区内容
+    public function pull($isHoldWrite=false){
+        if($isHoldWrite){
+            $this->exec('cd ' . $this->webRootDir . ';git stash');
+        }
         //写日志
         $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull;git submodule update');
+        if($isHoldWrite){
+            $this->exec('cd ' . $this->webRootDir . ';git stash pop');
+        }
         $this->log('githubReceive',json_encode($result));
         return $result;
     }
