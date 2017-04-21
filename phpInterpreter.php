@@ -10,6 +10,7 @@ final class phpInterpreter{
     private $codeArr;
     public $codeMeta;
     private $codeArrPre ='';
+    private $hasBeginPos = false;
     public function __construct($code)
     {
         $this->savedCode = $code;
@@ -72,6 +73,7 @@ final class phpInterpreter{
             //注释
             if($nextKeyWord=='//'){
                 $return[] = array(
+                    'lineNum'=>$this->lineNum,
                     'type'=>'comment',
                     'value'=> $this->searchInsetStr("\n")
                 );
@@ -79,6 +81,7 @@ final class phpInterpreter{
             //注释段
             elseif($nextKeyWord=='/*'){
                 $childYunxingshi = array(
+                    'lineNum'=>$this->lineNum,
                     'type'=>'comments',
                     'value'=>''
                 );
@@ -86,6 +89,7 @@ final class phpInterpreter{
                     $childYunxingshi['value'] .= $this->searchInsetStr('/').'/';
                 }while(substr($childYunxingshi['value'],-2)!=='*/');
                 $childYunxingshi['value'] = substr($childYunxingshi['value'],0,-2);
+                $this->lineNum+=substr_count($childYunxingshi['value'],"\n");
                 $return[] = $childYunxingshi;
             }
             else{
@@ -100,6 +104,7 @@ final class phpInterpreter{
                 elseif(isset($this->dataTypeDesc[$isClassProperty?'property':$nextKeyWord]) && in_array($yunxingshiType,$this->dataTypeDesc[$isClassProperty?'property':$nextKeyWord]['runEnvironment'])){
                     $type = $isClassProperty?'property':$nextKeyWord;
                     $childResult = array(
+                        'lineNum'=>$this->lineNum,
                         'type'=>$type
                     );
                     //取出暂存的描述符
@@ -171,7 +176,9 @@ final class phpInterpreter{
                 }
                 //运算代码
                 else{
-                    $childResult = array();
+                    $childResult = array(
+                        'lineNum'=>$this->lineNum,
+                    );
                     if(in_array($nextKeyWord,array('if','else','elseif'))){
                         $nextWord = $this->forward();
                         if($nextKeyWord=='else' && $nextWord=='if'){
@@ -918,6 +925,7 @@ final class phpInterpreter{
      * @param putBack 是否停止前进(为true的时候,切出词语之后,梭子不往后移动)
      * @return string
      **/
+    private $lineNum = 0;
     private function forward($putBack = false){
         if($this->codeArrPre!==''){
             $pre = $this->codeArrPre;
@@ -932,6 +940,9 @@ final class phpInterpreter{
         $temp = '';
         while(count($this->codeArr)>0){
             $first = $this->codeArr[0];
+            if($first=="\n"){
+                $this->lineNum++;
+            }
             if($temp=='' && in_array($first,array(''," ","\t","\n"))){
                 array_shift($this->codeArr);
                 continue;
