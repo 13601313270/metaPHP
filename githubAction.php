@@ -20,9 +20,9 @@ abstract class githubAction{
 
     //创建分支
     public function createBranch($name,$isChangeNow=true){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git branch '.$name);
+        $result = $this->exec('git branch '.$name);
         if($isChangeNow){
-            $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$name);
+            $result = $this->exec('git checkout '.$name);
             $this->log('createBranch','创建分支:['.$name.']并切换到在此分支;结果'.json_encode($result));
         }else{
             $this->log('createBranch','创建分支:['.$name.'];结果'.json_encode($result));
@@ -31,24 +31,24 @@ abstract class githubAction{
     }
     //删除分支
     public function deleteBranch($name){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git branch -D '.$name);
+        $result = $this->exec('git branch -D '.$name);
         $this->log('deleteBranch','删除分支:['.$name.'];结果'.json_encode($result));
         return $result;
     }
     //切换分支
     public function checkout($name){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$name);
+        $result = $this->exec('git checkout '.$name);
         $this->log('createBranch','创建分支:'.$name.';结果'.json_encode($result));
         return $result;
     }
     //分支还原
     public function branchClean(){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git branch -vv');
+        $result = $this->exec('git branch -vv');
         foreach($result as $branch){
             if(substr($branch,0,1)=='*'){
                 if(preg_match('/\* (\S+) (\S+) \[(\S+)\] (\S+)/',$branch,$match)){
                     $orignBranch = $match[3];
-                    return $this->exec('cd ' . $this->webRootDir . ';git checkout .;git reset --hard '.$orignBranch);
+                    return $this->exec('git checkout .;git reset --hard '.$orignBranch);
                 }
 
             }
@@ -57,7 +57,7 @@ abstract class githubAction{
     }
     //合并分支
     public function mergeBranch($branchName){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git merge --no-ff '.$branchName);
+        $result = $this->exec('git merge --no-ff '.$branchName);
         $this->log('mergeBranch','合并分支:'.$branchName.';结果'.json_encode($result));
         return $result;
     }
@@ -65,38 +65,38 @@ abstract class githubAction{
     //isHoldWrite是否保留已经修改的工作区内容
     public function pull($isHoldWrite=false){
         if($isHoldWrite){
-            $this->exec('cd ' . $this->webRootDir . ';git stash');
+            $this->exec('git stash');
         }
         //写日志
-        $result = $this->exec('cd ' . $this->webRootDir . ';git checkout '.$this->webRootDir.';git pull;git submodule update');
+        $result = $this->exec('git checkout '.$this->webRootDir.';git pull;git submodule update');
         if($isHoldWrite){
-            $this->exec('cd ' . $this->webRootDir . ';git stash pop');
+            $this->exec('git stash pop');
         }
         $this->log('githubReceive',json_encode($result));
         return $result;
     }
     //推送代码push
     public function push(){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git push origin '.$this->runLocalBranch);
+        $result = $this->exec('git push origin '.$this->runLocalBranch);
         $this->log('mergeBranch','提交代码;结果'.json_encode($result));
         return $result;
     }
     //代码加入暂存区
     public function add($filePath){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git add '.$filePath);
+        $result = $this->exec('git add '.$filePath);
         $this->log('commit','加入暂存区;结果'.json_encode($result));
         return $result;
     }
     //提交代码commit
     public function commit($message){
-        $result = $this->exec('cd ' . $this->webRootDir . ';git commit -m "'.$message.'"');
+        $result = $this->exec('git commit -m "'.$message.'"');
         $this->log('commit','提交代码;结果'.json_encode($result));
         return $result;
     }
     //执行命令
     public function exec($line){
         $result = array();
-        exec($line.' 2>&1',$result);
+        exec('cd ' . $this->webRootDir . ';'.$line.' 2>&1',$result);
         return $result;
     }
     //记录日志
