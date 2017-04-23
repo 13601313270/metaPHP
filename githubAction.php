@@ -68,7 +68,7 @@ abstract class githubAction{
             $this->exec('git stash');
         }
         //写日志
-        $result = $this->exec('git checkout '.$this->webRootDir.';git pull;git submodule update');
+        $result = $this->exec('git checkout .;git pull;git submodule update');
         if($isHoldWrite){
             $this->exec('git stash pop');
         }
