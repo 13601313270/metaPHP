@@ -48,7 +48,7 @@ abstract class githubAction{
             if(substr($branch,0,1)=='*'){
                 if(preg_match('/\* (\S+) (\S+) \[(\S+)\] (\S+)/',$branch,$match)){
                     $orignBranch = $match[3];
-                    return $this->exec('git checkout .;git reset --hard '.$orignBranch);
+                    return $this->exec('git checkout .;git reset --hard '.current(explode(':',$orignBranch)));
                 }
 
             }
