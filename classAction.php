@@ -39,7 +39,8 @@ class classAction extends ReflectionClass{
         if($this->isSysClass){
             return parent::getName();
         }else{
-            return $this->phpInterpreter->search('.class name');
+            $name = $this->phpInterpreter->search('.class name')->toArray();
+            return $name[0];
         }
     }
     //获取父类
@@ -164,14 +165,13 @@ class classAction extends ReflectionClass{
     public function setProperty($key,$value,$type){
         // $contrast为null的时候,$positionType的before和after代表添加到类的和开始或最后
         // $contrast不为null的时候,$positionType的before和after代表添加到$contrast的和开始或最后
-        $class = &$this->phpInterpreter->search('#'.$this->getName().' child');
-        $class[] = array(
+        $class = $this->phpInterpreter->search('#'.$this->getName())->toArray();
+        $class[0]['child'][] = array(
             'type'=>'property',
             'name'=>'$'.$key,
             $type=>true,
             'value'=>$value
         );
-        print_r($class);
     }
 }
 class functionAction extends ReflectionMethod{
