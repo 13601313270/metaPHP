@@ -495,15 +495,15 @@ final class phpInterpreter{
         }
         return $return;
     }
-    /*
+    /**
      * 元代码模块查找
      *
-     * @param searchStr 查找字符串
-     *
-     * 字符串用空格分割了层级
-     *  # 字符串代表了查找子程序name查找
-     **/
+     * @param string $searchStr 查找字符串
+     * @return metaSearch
+     */
     public function search($searchStr){
+        //字符串用空格分割了层级
+        //字符串代表了查找子程序name查找
         $metaSearchApi = new metaSearch($this->codeMeta);
         return $metaSearchApi->search($searchStr);
     }

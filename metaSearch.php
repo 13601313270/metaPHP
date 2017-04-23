@@ -93,6 +93,12 @@ class metaSearch{
     {
         $this->codeArr = &$codeArr;
     }
+    /**
+     * meta进行搜索
+     *
+     * @param string $sSearch 搜索关键词
+     * @return metaSearch
+     */
     public function search($sSearch){
         $baseArr = array(&$this->codeArr);
         $baseArrKey = array(array());
