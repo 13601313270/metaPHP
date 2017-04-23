@@ -152,12 +152,18 @@ class classAction extends ReflectionClass{
 //            file_put_contents($this->getFileName(),$content);
         }
     }
+
     /**
      * 添加属性
-     * $contrast为null的时候,$positionType的before和after代表添加到类的和开始或最后
-     * $contrast不为null的时候,$positionType的before和after代表添加到$contrast的和开始或最后
+     *
+     * @param string $key 属性名
+     * @param array $value 属性值(元代码)
+     * @param string $type 类型('private','protected','public','static')
+     * @return array
      */
     public function setProperty($key,$value,$type){
+        // $contrast为null的时候,$positionType的before和after代表添加到类的和开始或最后
+        // $contrast不为null的时候,$positionType的before和after代表添加到$contrast的和开始或最后
         $class = &$this->phpInterpreter->search('#'.$this->getName().' child');
         $class[] = array(
             'type'=>'property',
