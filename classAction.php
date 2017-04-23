@@ -85,7 +85,7 @@ class classAction extends ReflectionClass{
             array(
                 'type'=>'comments',
                 'value'=>'*
- * Created by PhpStorm.
+ * Created by metaPHP.
  * User: metaPHP
  * Date: '.date('Y/m/d').'
  * Time: '.date('H:i').'
