@@ -8,6 +8,10 @@
 class classAction extends ReflectionClass{
     private $isInFile = true;
     private $isSysClass = false;
+    /**
+     * phpInterpreter类的一个实例,用来保存此类的元代码
+     * @var phpInterpreter
+     */
     public $phpInterpreter;
     function __construct($name,$isInFile=true){
         if($isInFile){
@@ -92,9 +96,9 @@ class classAction extends ReflectionClass{
                 'child'=>array(),
             ),
         );
-        $class = &$newCreateClass->phpInterpreter->search('#'.$name);
+        $class = $newCreateClass->phpInterpreter->search('#'.$name)->toArray();
         if($parentClass!==''){
-            $class['extends'] = $parentClass;
+            $class[0]['extends'] = $parentClass;
         }
         $newCreateClass->isInFile = false;
 //        $newCreateClass->filePath = $filePath;
