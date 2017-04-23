@@ -586,7 +586,7 @@ final class phpInterpreter{
             elseif($codeMetaArr['type']=='comment'){
                 $return = $tabStr.'//'.$codeMetaArr['value'];
             }
-            elseif($codeMetaArr['type']=='bool'){
+            elseif(in_array($codeMetaArr['type'],array('boolean','bool'))){
                 return $codeMetaArr['data']?'true':'false';
             }
             elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue','exit'))){
@@ -836,7 +836,7 @@ final class phpInterpreter{
                     $return .= ')';
                 }
             }
-            elseif(in_array($codeMetaArr['type'],array('int','8int'))){
+            elseif(in_array($codeMetaArr['type'],array('int','integer','8int'))){
                 $return = $tabStr.$codeMetaArr['data'];
             }
             elseif($codeMetaArr['type']=='arrayValue'){
