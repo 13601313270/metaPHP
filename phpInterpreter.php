@@ -814,6 +814,7 @@ final class phpInterpreter{
                 }else{
                     $return = $tabStr.'array(';
                     foreach($codeMetaArr['child'] as $k=>$child){
+                        if($child===null){continue;}
                         if($k!=0){
                             $return .= ",";
                         }
