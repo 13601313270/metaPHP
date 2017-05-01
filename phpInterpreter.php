@@ -418,12 +418,12 @@ final class phpInterpreter{
                         $childResult['type'] = '&';
                         $childResult['value'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                     }
-                    elseif(preg_match('/^0(\d+)/',$nextKeyWord,$match)){
+                    elseif(preg_match('/^0(\d+)$/',$nextKeyWord,$match)){
                         //8进制整数
                         $childResult['type'] = '8int';
                         $childResult['data'] = $match[0];
                     }
-                    elseif(preg_match('/(\d+)/',$nextKeyWord,$match)){
+                    elseif(preg_match('/^(\d+)$/',$nextKeyWord,$match)){
                         //10进制整数
                         $childResult['type'] = 'int';
                         $childResult['data'] = $match[0];
