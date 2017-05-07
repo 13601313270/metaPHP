@@ -166,12 +166,18 @@ class classAction extends ReflectionClass{
         // $contrast为null的时候,$positionType的before和after代表添加到类的和开始或最后
         // $contrast不为null的时候,$positionType的before和after代表添加到$contrast的和开始或最后
         $class = $this->phpInterpreter->search('#'.$this->getName())->toArray();
-        $class[0]['child'][] = array(
-            'type'=>'property',
-            'name'=>'$'.$key,
-            $type=>true,
-            'value'=>$value
-        );
+        $classPro = $this->phpInterpreter->search('#'.$this->getName().' .property:filter(#$'.$key.')')->toArray();
+        if(empty($classPro)){
+            $class[0]['child'][] = array(
+                'type'=>'property',
+                'name'=>'$'.$key,
+                $type=>true,
+                'value'=>$value
+            );
+        }else{
+            $classPro[0][$type] = true;
+            $classPro[0]['value'] = $value;
+        }
     }
 }
 class functionAction extends ReflectionMethod{
