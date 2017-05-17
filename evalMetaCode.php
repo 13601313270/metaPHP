@@ -8,10 +8,12 @@
 class evalMetaCode{
     private $codeMeta;
     private $get;
-    public function __construct($codeMeta,$get)
+    public function __construct($codeMeta,$variable)
     {
         $this->codeMeta = $codeMeta;
-        $this->get = $get;
+        foreach($variable as $k=>$v){
+            $this->runTimeVariable[$k] = $v;
+        }
     }
     public $returnEvalValue = array();
     public function run(){
@@ -93,7 +95,16 @@ class evalMetaCode{
             return $reflectionMethod->invokeArgs(null, array());
         }elseif($code['type']=='returnEvalValue'){
             $this->returnEvalValue[$this->base($code['key'])] = $this->base($code['value']);
-        }else{
+        }elseif($code['type']=='echo'){
+            echo $this->base($code['value']);
+        }
+        elseif($code['type']=='html'){
+            echo $code['value'];
+        }
+        elseif($code['type']=='phpEnd'){
+
+        }
+        else{
             print_r($code);
         }
     }
