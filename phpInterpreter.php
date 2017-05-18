@@ -76,6 +76,7 @@ final class phpInterpreter{
                     'type'=>'html',
                     'value'=> $html
                 );
+                $this->lineNum+= substr_count($html,"\n");
                 $yunxingshiType = 'window';
                 if(trim(implode('',$this->codeArr)) !== ''){
                     $this->codeArrPre = "<?php";
