@@ -224,7 +224,6 @@ final class phpInterpreter{
                             $childResult['type'] = $nextKeyWord;
                             $childResult['className'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord),true);
                             if($this->forward(true)==';'){//new后面允许不带()
-                                $this->forward();
                             }else{
                                 if($this->forward()!='('){
                                     $this->throwWrong('new后面必须跟着(');
@@ -483,6 +482,9 @@ final class phpInterpreter{
                                 }while($this->forward()==',');
                             }
                             $childResult['property'] = $canshuArr;
+                        }
+                        elseif($nextKeyWord=='null'){
+                            $childResult['type'] = 'null';
                         }
                         else{
                             if($nextKeyWord==false){
@@ -912,6 +914,9 @@ final class phpInterpreter{
             }
             elseif(in_array($codeMetaArr['type'],array('--','++'))){
                 $return = $this->getCodeByCodeMeta($codeMetaArr['object1'],0).$codeMetaArr['type'];
+            }
+            elseif($codeMetaArr['type']=='null'){
+                $return = 'null';
             }
             else{
 
