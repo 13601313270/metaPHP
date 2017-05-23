@@ -217,6 +217,10 @@ final class phpInterpreter{
                             $childResult['type'] = 'phpBegin';
                         }
                         elseif($nextKeyWord=='?>'){
+                            //结束符后面跟的第一个换行符,好像不会真的输出
+                            if($this->codeArr[0]=="\n"){
+                                array_shift($this->codeArr);
+                            }
                             $childResult['type'] = 'phpEnd';
                             $yunxingshiType = 'html';
                             $return[] = $childResult;continue;
