@@ -594,8 +594,10 @@ final class phpInterpreter{
                 $return = $tabStr;
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,0);
-                    if(isset($v['child']) || in_array($v['type'],array('comment','comments','phpBegin'))){
-                        $return .="\n";
+                    if(isset($v['child']) || in_array($v['type'],array('comment','comments','phpBegin','html'))){
+                        if($v['type']!=='html'){
+                            $return .="\n";
+                        }
                     }else{
                         $return .=";\n";
                     }
@@ -922,6 +924,9 @@ final class phpInterpreter{
             }
             elseif($codeMetaArr['type']=='null'){
                 $return = 'null';
+            }
+            elseif($codeMetaArr['type']=='html'){
+                $return = $codeMetaArr['value'];
             }
             else{
 
