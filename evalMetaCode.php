@@ -35,7 +35,7 @@ class evalMetaCode{
         //所有code都有type属性
         //可以将源码添加returnEvalValue类型的元代码,这种类型会将返回值返回给调用evalMetaCode类的主程序
         if($code==null){//通常删除meta元代码,都是通过制空的形式操作的
-        }else if($code['type']=='window'){
+        }elseif($code['type']=='window'){
             if(count($code['child'])>0){
                 foreach($code['child'] as $v){
                     $this->base($v);
@@ -44,6 +44,10 @@ class evalMetaCode{
                     }
                 }
             }
+        }elseif($code['type']=='class'){
+            $metaApi = new phpInterpreter('');
+            $code = $metaApi->getCodeByCodeMeta($code,0);
+            eval($code);
         }elseif(in_array($code['type'],array('comments','phpBegin'))){
             return;
         }elseif($code['type']=='functionCall'){

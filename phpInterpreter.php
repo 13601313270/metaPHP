@@ -734,7 +734,7 @@ final class phpInterpreter{
                 }
             }
             elseif($codeMetaArr['type']=='objectParams'){
-                $return = $tabStr.$codeMetaArr['object']['name'].'->'.$codeMetaArr['name'];
+                $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object'],0).'->'.$codeMetaArr['name'];
             }
             elseif($codeMetaArr['type']=='return'){
                 $return = $tabStr.'return '.$this->getCodeByCodeMeta($codeMetaArr['value'],0);
