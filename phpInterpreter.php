@@ -579,6 +579,8 @@ final class phpInterpreter{
         }
         return $return;
     }
+    //不用分号结尾的类型
+    private $noFenhaoType = array('comment','comments','phpBegin','phpEnd','html');
     /*
      * 元代码还原代码器
      * @param codeMetaArr 元代码
@@ -594,7 +596,7 @@ final class phpInterpreter{
                 $return = $tabStr;
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,0);
-                    if(isset($v['child']) || in_array($v['type'],array('comment','comments','phpBegin','html'))){
+                    if(isset($v['child']) || in_array($v['type'],$this->noFenhaoType)){
                         if($v['type']!=='html'){
                             $return .="\n";
                         }
@@ -605,6 +607,9 @@ final class phpInterpreter{
             }
             elseif($codeMetaArr['type']=='phpBegin'){
                 $return = $tabStr."<?php\n";
+            }
+            elseif($codeMetaArr['type']=='phpEnd'){
+                $return = $tabStr."?>\n";
             }
             elseif($codeMetaArr['type']=='comments'){
                 $return = $tabStr.'/*'.$codeMetaArr['value']."*/\n";
@@ -676,7 +681,7 @@ final class phpInterpreter{
                 $return.="){\n";
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,$tab+1);
-                    if(isset($v['child']) || $v['type']=='comment'){
+                    if(isset($v['child']) || in_array($v['type'],$this->noFenhaoType)){
                         $return .="\n";
                     }else{
                         $return .=";\n";
