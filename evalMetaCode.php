@@ -190,7 +190,16 @@ class evalMetaCode{
         elseif($code['type']=='exit'){
             $this->isExit = true;
         }
+        elseif(in_array($code['type'],array('comment','comments'))){
+        }
+        elseif($code['type']=='+'){
+            return $this->base($code['object1'])+$this->base($code['object2']);
+        }
+        elseif($code['type']=='-'){
+            return $this->base($code['object1'])-$this->base($code['object2']);
+        }
         else{
+            echo "无法识别的meta代码\n";
             print_r($code);
         }
     }
