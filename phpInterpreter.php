@@ -82,13 +82,13 @@ final class phpInterpreter{
                     $this->codeArrPre = "<?php";
                 }
             }else{
-                //注释
                 $nextKeyWord = $this->forward();//梭子获取下一个词语
+                //注释
                 if($nextKeyWord=='//'){
                     $return[] = array(
                         'lineNum'=>$this->lineNum,
                         'type'=>'comment',
-                        'value'=> $this->searchInsetStr("<?php")
+                        'value'=> $this->searchInsetStr("\n")
                     );
                 }
                 //注释段
