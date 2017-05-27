@@ -90,7 +90,6 @@ final class phpInterpreter{
                         'type'=>'comment',
                         'value'=> $this->searchInsetStr("<?php")
                     );
-                    print_r($return);
                 }
                 //注释段
                 elseif($nextKeyWord=='/*'){
