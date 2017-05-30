@@ -70,7 +70,7 @@ abstract class githubAction{
         //写日志
         $result = $this->exec('git checkout .;git pull;git submodule update');
         if($isHoldWrite){
-            $this->exec('git stash pop');
+            $this->exec('git stash pop;git stash clear');
         }
         $this->log('githubReceive',json_encode($result));
         return $result;
