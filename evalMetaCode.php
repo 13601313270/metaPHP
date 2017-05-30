@@ -107,9 +107,11 @@ class evalMetaCode{
             $obj = &$this->base($code['object']);
             $funcName = $code['name'];
             $params = array();
-            foreach($code['property'] as $v){
-                $params[] = &$this->base($v);
-                if($this->isExit){return;}
+            if(isset($code['property'])){
+                foreach($code['property'] as $v){
+                    $params[] = &$this->base($v);
+                    if($this->isExit){return;}
+                }
             }
             $reflectionMethod = new ReflectionMethod(get_class($obj),$funcName);
             return $reflectionMethod->invokeArgs($obj, $params);
