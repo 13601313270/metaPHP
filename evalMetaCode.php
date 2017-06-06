@@ -100,8 +100,12 @@ class evalMetaCode{
             return $obj[$this->base($code['key'])];
         }elseif($code['type']=='objectParams'){
             $obj = &$this->base($code['object']);
+            if(is_string($code['name'])){
+                $paramName = $code['name'];
+            }else{
+                $paramName = &$this->base($code['name']);
+            }
             if($this->isExit){return;}
-            $paramName = $code['name'];
             return $obj->$paramName;
         }elseif($code['type']=='objectFunction'){
             $obj = &$this->base($code['object']);
@@ -201,8 +205,9 @@ class evalMetaCode{
             return $this->base($code['object1'])-$this->base($code['object2']);
         }
         elseif($code['type']=='debug'){
+            $this->returnEvalValue['debug']['runTime'] = 'runTime';
             $this->returnEvalValue['debug']['variable'] = $this->runTimeVariable;
-            if($this->isExit){return;}
+            $this->isExit = true;
         }
         else{
             echo "无法识别的meta代码\n";

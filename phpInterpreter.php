@@ -360,7 +360,7 @@ final class phpInterpreter{
                             $obj = $return[count($return)-1];
                             array_pop($return);
                             $childResult['object'] = $obj;
-                            $childResult['name'] = $this->forward();
+                            $childResult['name'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu('&'));
                             if($this->forward(true)=='('
                                 &&(
                                     (is_array($endStr) && !in_array('(',$endStr))
