@@ -200,6 +200,10 @@ class evalMetaCode{
         elseif($code['type']=='-'){
             return $this->base($code['object1'])-$this->base($code['object2']);
         }
+        elseif($code['type']=='debug'){
+            $this->returnEvalValue['debug']['variable'] = $this->runTimeVariable;
+            if($this->isExit){return;}
+        }
         else{
             echo "无法识别的meta代码\n";
             print_r($code);
