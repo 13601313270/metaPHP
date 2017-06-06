@@ -472,7 +472,7 @@ final class phpInterpreter{
                                 }
                             }
                         }
-                        elseif($this->forward(true)==='(' && ((is_array($endStr) && !in_array('(',$endStr)) || (!is_array($endStr) && $endStr!='('))){
+                        elseif($this->forward(true)==='(' && preg_match('/^[A-Z|a-z|_][A-Z|a-z|_|0-9]*$/',$nextKeyWord,$match) && ((is_array($endStr) && !in_array('(',$endStr)) || (!is_array($endStr) && $endStr!='('))){
                             //函数调用带有变量后面带着"("
                             $childResult['type'] = 'functionCall';
                             $childResult['name'] = $nextKeyWord;
@@ -490,11 +490,32 @@ final class phpInterpreter{
                         elseif($nextKeyWord=='null'){
                             $childResult['type'] = 'null';
                         }
+                        elseif($nextKeyWord=='#debug' && $this->forward()==='('){
+                            $canshuArr = array();
+                            if($this->forward(true)==')'){
+                                $this->forward();
+                            }else{
+                                do{
+                                    $canshuArr[] = $this->_getCodeMetaByCode('code','',array(',',')'));
+                                }while($this->forward()==',');
+                            }
+                            $childResult['type'] = 'debug';
+                            $childResult['property'] = $canshuArr;
+                            if($this->forward()!='#'){
+                                $this->throwWrong('debug必须以#结束');
+                            }
+                        }
                         else{
                             if($nextKeyWord==false){
                                 break;
                             }
                             if(in_array($nextKeyWord,array(';'))){ }
+                            elseif(preg_match('/^[A-Z|a-z|_][A-Z|a-z|_|0-9]*$/',$nextKeyWord,$match)){
+                                //类名或系统函数名
+                            }
+                            else{
+                                throw new Exception('未识别的代码'.$nextKeyWord);
+                            }
                             $childResult = $nextKeyWord;
 
                         }
