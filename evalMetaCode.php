@@ -211,7 +211,11 @@ class evalMetaCode{
                 $variable = array();
                 foreach($variable_ as $k=>$v){
                     if(is_string($v)){
-                        $variable[$k] = $v;
+                        if(isset($runTime->$v)){
+                            $variable[$k] = $v."【".$runTime->$v."】";
+                        }else{
+                            $variable[$k] = $v."【暂无值】";
+                        }
                     }
                 }
                 foreach(get_object_vars($runTime) as $k=>$v){
