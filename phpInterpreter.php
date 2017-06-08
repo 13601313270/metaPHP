@@ -815,7 +815,7 @@ final class phpInterpreter{
                 $return .=$this->getCodeByCodeMeta($codeMetaArr['value'],0)."){\n";
                 foreach($codeMetaArr['child'] as $child){
                     $return .=$this->getCodeByCodeMeta($child,$tab+1);
-                    if(isset($child['child']) || $child['type']=='comment'){
+                    if(isset($child['child']) || in_array($child['type'],$this->noFenhaoType)){
                         $return .="\n";
                     }else{
                         $return .=";\n";
