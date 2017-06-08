@@ -78,10 +78,10 @@ class evalMetaCode{
             $returnArr = array();
             foreach($code['child'] as $k=>$v){
                 if($v['type']=='arrayValue'){
-                    $returnArr[$this->base($v['key'],$v)] = $this->base($v['value'],$v);
+                    $returnArr[$this->base($v['key'],$v)] = $this->base($v['value'],$code);
                     if($this->isExit){return;}
                 }else{
-                    $returnArr[] = $this->base($v['value'],$v);
+                    $returnArr[] = $this->base($v,$code);
                     if($this->isExit){return;}
                 }
             }
