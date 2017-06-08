@@ -31,6 +31,8 @@ class evalMetaCode{
         return $return;
     }
     private $isExit = false;//如果遇到执行exit,则赋值true
+    //$runStateMeta运行时meta元代码
+    //$runTime运行时的值
     public function &base($code,$runStateMeta=false,$runTime=false){
         //所有code都有type属性
         //可以将源码添加returnEvalValue类型的元代码,这种类型会将返回值返回给调用evalMetaCode类的主程序
@@ -97,7 +99,7 @@ class evalMetaCode{
         }elseif($code['type']=='arrayGet'){
             $obj = &$this->base($code['object'],$code);
             if($this->isExit){return;}
-            return $obj[$this->base($code['key'],$code)];
+            return $obj[$this->base($code['key'],$code,$obj)];
         }elseif($code['type']=='objectParams'){
             $obj = &$this->base($code['object'],$code);
             if(is_string($code['name'])){
@@ -220,6 +222,20 @@ class evalMetaCode{
                 }
                 foreach(get_object_vars($runTime) as $k=>$v){
                     $variable[$k] = $v;
+                }
+            }elseif($runStateMeta['type']=='arrayGet'){
+                $variable = array();
+                foreach($variable_ as $k=>$v){
+                    if(is_string($v)){
+                        if(isset($runTime->$v)){
+                            $variable[$k] = $v."【".$runTime->$v."】";
+                        }else{
+                            $variable[$k] = $v."【暂无值】";
+                        }
+                    }
+                }
+                foreach($runTime as $k=>$v){
+                    $variable["'".$k."'"] = "'".$k."'";
                 }
             }else{
                 $variable = $variable_;
