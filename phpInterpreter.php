@@ -389,14 +389,14 @@ final class phpInterpreter{
                             }
                         }
                         //二元运算符($1运算符$2),类型的运算
-                        elseif(in_array($nextKeyWord,array('&&','||','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
+                        elseif(in_array($nextKeyWord,array('&&','^','||','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                             $obj = $return[count($return)-1];
                             array_pop($return);
                             $childResult['type'] = $nextKeyWord;
                             $childResult['object1'] = $obj;
                             $childResult['object2'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                         }
-                        elseif($nextKeyWord=='!'){
+                        elseif(in_array($nextKeyWord,array('!'))){
                             $childResult['type'] = $nextKeyWord;
                             $childResult['value'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                         }
@@ -427,7 +427,26 @@ final class phpInterpreter{
                             //父类
                             $childResult['type'] = $nextKeyWord;
                         }
-                        elseif($nextKeyWord=='return'){
+                        elseif($nextKeyWord=='include_once'){//既可以用括号,又可以用空格的关键词
+                            $childResult['type'] = 'functionCall';
+                            $childResult['name'] = $nextKeyWord;
+                            if($this->forward(true)=='('){
+                                $this->forward();
+                                $canshuArr = array();
+                                if($this->forward(true)==')'){
+                                    $this->forward();
+                                }else{
+                                    do{
+                                        $canshuArr[] = $this->_getCodeMetaByCode('code','',array(',',')'));
+                                    }while($this->forward()==',');
+                                }
+                                $childResult['property'] = $canshuArr;
+                            }else{
+                                $childResult['property'] = $this->_getCodeMetaByCode('codeBlock','',';');
+                            }
+
+                        }
+                        elseif(in_array($nextKeyWord,array('return','include_once'))){
                             $childResult['type'] = $nextKeyWord;
                             $childResult['value'] = current($this->_getCodeMetaByCode('codeBlock','',';'));
                         }
@@ -759,7 +778,7 @@ final class phpInterpreter{
             elseif($codeMetaArr['type']=='return'){
                 $return = $tabStr.'return '.$this->getCodeByCodeMeta($codeMetaArr['value'],0);
             }
-            elseif(in_array($codeMetaArr['type'],array('&&','||','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
+            elseif(in_array($codeMetaArr['type'],array('&&','^','||','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object1'],0);
                 $return .= $codeMetaArr['type'];
                 $value = $this->getCodeByCodeMeta($codeMetaArr['object2'],$tab);
@@ -767,7 +786,6 @@ final class phpInterpreter{
             }
             elseif(in_array($codeMetaArr['type'],array('staticFunction','objectFunction','__construct'))){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object'],0);
-
                 $return .= $codeMetaArr['type']=='objectFunction'?'->':'::';
                 $return .=$codeMetaArr['name'];
                 $allParams = array();
@@ -864,13 +882,19 @@ final class phpInterpreter{
                     $return = $tabStr.'array()';
                 }else{
                     $return = $tabStr.'array(';
+                    $isShowMoreLine = false;//是否输出了多行
                     foreach($codeMetaArr['child'] as $k=>$child){
                         if($child===null){continue;}
-                        if($k!=0){
-                            $return .= ",";
-                        }
-                        if($child['type']!=='int'){
-                            if(count($codeMetaArr['child'])!=1){
+                        if(true || $child['type']!=='int'){
+                            //下面情况下需要换行,1.还有子元素.2.comment元素
+                            if(in_array($child['type'],array('comments','comment'))){
+                                $isShowMoreLine = true;
+                                $return .= "\n";
+                                $return .= $this->getCodeByCodeMeta($child,$tab+1);
+                                $return .= "\n";
+                            }
+                            elseif(count($codeMetaArr['child'])!=1){
+                                $isShowMoreLine = true;
                                 $return .= "\n";
                                 $return .= $this->getCodeByCodeMeta($child,$tab+1);
                             }else{
@@ -880,8 +904,11 @@ final class phpInterpreter{
                         }else{
                             $return .= $this->getCodeByCodeMeta($child,0);
                         }
+                        if($k!=count($codeMetaArr['child'])-1 && $child['type']!=='comment'){
+                            $return .= ",";
+                        }
                     }
-                    if(strpos($return,"\n")>-1 && count($codeMetaArr['child'])!=1){
+                    if(strpos($return,"\n")>-1 && $isShowMoreLine){
                         $return .= "\n";
                         $return .= $tabStr;
                     }
@@ -954,7 +981,6 @@ final class phpInterpreter{
                 $return = $codeMetaArr['value'];
             }
             else{
-
                 //异常,上面写的没错的话,进入不到这里,这个只是监控上面代码写的对不对的报警
                 return '!!'.$codeMetaArr['type'];
             }
