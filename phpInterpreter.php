@@ -657,7 +657,7 @@ final class phpInterpreter{
                 $return = $tabStr.'//'.$codeMetaArr['value'];
             }
             elseif(in_array($codeMetaArr['type'],array('boolean','bool'))){
-                return $codeMetaArr['data']?'true':'false';
+                return ($codeMetaArr['data']===true||$codeMetaArr['data']==='true')?'true':'false';
             }
             elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue','exit'))){
                 return $tabStr.$codeMetaArr['type'].(!in_array($codeMetaArr['type'],array('parent','self'))?"\n":'');
