@@ -474,23 +474,6 @@ final class phpInterpreter{
                             $childResult['type'] = $nextKeyWord;
                             $childResult['child'] = $this->_getCodeMetaByCode('array','(',')');
                         }
-                        elseif($yunxingshiType=='array'){
-                            //数组子值赋值
-                            if($nextKeyWord =='=>'){
-                                $obj = $return[count($return)-1];
-                                array_pop($return);
-                                $childResult['type'] = 'arrayValue';
-                                $childResult['key'] = $obj;
-                                $childResult['value'] = $this->_getCodeMetaByCode('code','',array(',',')'));
-                                if($this->forward(true)==','){
-                                    $this->forward();
-                                }
-                            }elseif($nextKeyWord==','){
-                                if($this->forward(true)!==')'){
-                                    continue;
-                                }
-                            }
-                        }
                         elseif($this->forward(true)==='(' && preg_match('/^[A-Z|a-z|_][A-Z|a-z|_|0-9]*$/',$nextKeyWord,$match) && ((is_array($endStr) && !in_array('(',$endStr)) || (!is_array($endStr) && $endStr!='('))){
                             //函数调用带有变量后面带着"("
                             $childResult['type'] = 'functionCall';
@@ -522,6 +505,23 @@ final class phpInterpreter{
                             $childResult['property'] = $canshuArr;
                             if($this->forward()!='#'){
                                 $this->throwWrong('debug必须以#结束');
+                            }
+                        }
+                        elseif($yunxingshiType=='array'){
+                            //数组子值赋值
+                            if($nextKeyWord =='=>'){
+                                $obj = $return[count($return)-1];
+                                array_pop($return);
+                                $childResult['type'] = 'arrayValue';
+                                $childResult['key'] = $obj;
+                                $childResult['value'] = $this->_getCodeMetaByCode('code','',array(',',')'));
+                                if($this->forward(true)==','){
+                                    $this->forward();
+                                }
+                            }elseif($nextKeyWord==','){
+                                if($this->forward(true)!==')'){
+                                    continue;
+                                }
                             }
                         }
                         else{
