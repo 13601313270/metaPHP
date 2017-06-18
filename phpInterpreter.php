@@ -881,38 +881,27 @@ final class phpInterpreter{
                 if(empty($codeMetaArr['child'])){
                     $return = $tabStr.'array()';
                 }else{
-                    $return = $tabStr.'array(';
+                    $_return = array();
                     $isShowMoreLine = false;//是否输出了多行
                     foreach($codeMetaArr['child'] as $k=>$child){
                         if($child===null){continue;}
-                        if(true || $child['type']!=='int'){
-                            //下面情况下需要换行,1.还有子元素.2.comment元素
-                            if(in_array($child['type'],array('comments','comment'))){
-                                $isShowMoreLine = true;
-                                $return .= "\n";
-                                $return .= $this->getCodeByCodeMeta($child,$tab+1);
-                                $return .= "\n";
-                            }
-                            elseif(count($codeMetaArr['child'])!=1){
-                                $isShowMoreLine = true;
-                                $return .= "\n";
-                                $return .= $this->getCodeByCodeMeta($child,$tab+1);
-                            }else{
-                                $value = $this->getCodeByCodeMeta($child,$tab+1);
-                                $return .= preg_replace('/^\s+/','',$value);
-                            }
+                        if(in_array($child['type'],array('comments','comment'))){
+                            //注释后面不加逗号
+                            $isShowMoreLine = true;
+                            $_return[]= $this->getCodeByCodeMeta($child,0);
                         }else{
-                            $return .= $this->getCodeByCodeMeta($child,0);
-                        }
-                        if($k!=count($codeMetaArr['child'])-1 && $child['type']!=='comment'){
-                            $return .= ",";
+                            $_return[]= $this->getCodeByCodeMeta($child,0).($k!=count($codeMetaArr['child'])-1?",":'');
                         }
                     }
-                    if(strpos($return,"\n")>-1 && $isShowMoreLine){
-                        $return .= "\n";
-                        $return .= $tabStr;
+                    $return = $tabStr.'array('.($isShowMoreLine?"\n":'');
+                    foreach($_return as $k=>$v){
+                        if($isShowMoreLine){
+                            $return .= $this->getTabStr($tab+1).$v."\n";
+                        }else{
+                            $return .= $v;
+                        }
                     }
-                    $return .= ')';
+                    $return .= ($isShowMoreLine?$tabStr:'').')';
                 }
             }
             elseif(in_array($codeMetaArr['type'],array('int','integer','8int'))){
