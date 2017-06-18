@@ -671,7 +671,18 @@ final class phpInterpreter{
             elseif(in_array($codeMetaArr['type'],array('boolean','bool'))){
                 return ($codeMetaArr['data']===true||$codeMetaArr['data']==='true')?'true':'false';
             }
-            elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue','exit'))){
+            elseif($codeMetaArr['type']=='exit'){
+                $return = $tabStr.$codeMetaArr['type'];
+                if(isset($codeMetaArr['property'])){
+                    $allParams = array();
+                    foreach($codeMetaArr['property'] as $param){
+                        $allParams[] = $this->getCodeByCodeMeta($param,0);
+                    }
+                    $return .= '('.implode(',',$allParams).')';
+                }
+                return $return;
+            }
+            elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue'))){
                 return $tabStr.$codeMetaArr['type'].(!in_array($codeMetaArr['type'],array('parent','self'))?"\n":'');
             }
             elseif($codeMetaArr['type']=='class'){
@@ -790,9 +801,13 @@ final class phpInterpreter{
             elseif($codeMetaArr['type']=='return'){
                 $return = $tabStr.'return '.$this->getCodeByCodeMeta($codeMetaArr['value'],0);
             }
-            elseif(in_array($codeMetaArr['type'],array('&&','^','||','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
+            elseif(in_array($codeMetaArr['type'],array('&&','^','||','or','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object1'],0);
-                $return .= $codeMetaArr['type'];
+                if($codeMetaArr['type']=='or'){
+                    $return .= ' '.$codeMetaArr['type'].' ';
+                }else{
+                    $return .= $codeMetaArr['type'];
+                }
                 $value = $this->getCodeByCodeMeta($codeMetaArr['object2'],$tab);
                 $return .= preg_replace('/^\s+/','',$value);
             }
