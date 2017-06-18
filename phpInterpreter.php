@@ -489,8 +489,8 @@ final class phpInterpreter{
                             }
                             $childResult['property'] = $canshuArr;
                         }
-                        elseif($nextKeyWord=='null'){
-                            $childResult['type'] = 'null';
+                        elseif(in_array($nextKeyWord,array('null','__FILE__'))){
+                            $childResult['type'] = $nextKeyWord;
                         }
                         elseif($nextKeyWord=='#debug' && $this->forward()==='('){
                             $canshuArr = array();

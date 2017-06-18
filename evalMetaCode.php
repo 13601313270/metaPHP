@@ -18,8 +18,12 @@ class evalMetaCode{
     public function run(){
         $this->isExit = false;
         $this->returnEvalValue = array();
-        $this->base($this->codeMeta);
-        return $this->returnEvalValue;
+        $result = $this->base($this->codeMeta);
+        if(!empty($this->returnEvalValue)){
+            return $this->returnEvalValue;
+        }else{
+            return $result;
+        }
     }
     private $runTimeVariable = array();
     private function &getRunVariable($name){
@@ -205,6 +209,16 @@ class evalMetaCode{
         }
         elseif($code['type']=='-'){
             return $this->base($code['object1'],$code)-$this->base($code['object2'],$code);
+        }
+        elseif($code['type']=='.'){
+            return strval($this->base($code['object1'],$code)).strval($this->base($code['object2'],$code));
+        }
+        elseif($code['type']=='__FILE__'){
+            if(isset($this->runTimeVariable[$code['type']])){
+                return $this->runTimeVariable[$code['type']];
+            }else{
+                var_dump('__FILE__的值,需要再evalMetaCode第二个参数传递进来');
+            }
         }
         elseif($code['type']=='debug'){
             $this->returnEvalValue['debug']['runTime'] = $runStateMeta;
