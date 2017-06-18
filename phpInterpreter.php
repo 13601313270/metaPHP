@@ -683,7 +683,7 @@ final class phpInterpreter{
                 return $return;
             }
             elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue'))){
-                return $tabStr.$codeMetaArr['type'].(!in_array($codeMetaArr['type'],array('parent','self'))?"\n":'');
+                return $tabStr.$codeMetaArr['type'];
             }
             elseif($codeMetaArr['type']=='class'){
                 $return = $tabStr;
@@ -1070,10 +1070,8 @@ final class phpInterpreter{
                 if($temp==''){
                     array_shift($this->codeArr);
                     $temp = $first;
-                    break;
-                }else{
-                    break;
                 }
+                break;
             }
             array_shift($this->codeArr);
             $temp.=$first;
@@ -1084,16 +1082,18 @@ final class phpInterpreter{
             array('===','!==','[]='),
         );
 
-        while(count($this->codeArr)>0){
-            //去除掉空格
-            while($this->codeArr[0]==' '){
-                array_shift($this->codeArr);
-            }
-            if(isset($arrayTemp[strlen($temp)-1]) && in_array($temp.$this->codeArr[0],$arrayTemp[strlen($temp)-1])){
-                $temp = $temp.$this->codeArr[0];
-                array_shift($this->codeArr);
-            }else{
-                break;
+        if(!in_array($temp,array('"',"'"))){
+            while(count($this->codeArr)>0){
+                //去除掉空格
+                while($this->codeArr[0]==' '){
+                    array_shift($this->codeArr);
+                }
+                if(isset($arrayTemp[strlen($temp)-1]) && in_array($temp.$this->codeArr[0],$arrayTemp[strlen($temp)-1])){
+                    $temp = $temp.$this->codeArr[0];
+                    array_shift($this->codeArr);
+                }else{
+                    break;
+                }
             }
         }
         //  "<?php"  这个关键词的特殊匹配
