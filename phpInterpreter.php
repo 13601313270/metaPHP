@@ -264,6 +264,18 @@ final class phpInterpreter{
                         }
                         elseif($nextKeyWord=='exit'){
                             $childResult['type'] = $nextKeyWord;
+                            if($this->forward(true)=='('){
+                                $this->forward();
+                                $canshuArr = array();
+                                if($this->forward(true)==')'){
+                                    $this->forward();
+                                }else{
+                                    do{
+                                        $canshuArr[] = $this->_getCodeMetaByCode('code','',array(',',')'));
+                                    }while($this->forward()==',');
+                                }
+                                $childResult['property'] = $canshuArr;
+                            }
                         }
                         elseif($nextKeyWord=='foreach'){
                             $childResult['type'] = $nextKeyWord;
@@ -389,7 +401,7 @@ final class phpInterpreter{
                             }
                         }
                         //二元运算符($1运算符$2),类型的运算
-                        elseif(in_array($nextKeyWord,array('&&','^','||','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
+                        elseif(in_array($nextKeyWord,array('&&','^','||','or','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                             $obj = $return[count($return)-1];
                             array_pop($return);
                             $childResult['type'] = $nextKeyWord;
@@ -660,7 +672,7 @@ final class phpInterpreter{
                 return ($codeMetaArr['data']===true||$codeMetaArr['data']==='true')?'true':'false';
             }
             elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue','exit'))){
-                return $tabStr.$codeMetaArr['type'].(!in_array($codeMetaArr['type'],array('parent','self'))?"\n":'');
+                return $tabStr.$codeMetaArr['type'];
             }
             elseif($codeMetaArr['type']=='class'){
                 $return = $tabStr;
