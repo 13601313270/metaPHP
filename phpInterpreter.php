@@ -990,8 +990,8 @@ final class phpInterpreter{
             elseif(in_array($codeMetaArr['type'],array('--','++'))){
                 $return = $this->getCodeByCodeMeta($codeMetaArr['object1'],0).$codeMetaArr['type'];
             }
-            elseif($codeMetaArr['type']=='null'){
-                $return = 'null';
+            elseif(in_array($codeMetaArr['type'],array('null','__FILE__'))){
+                $return = $codeMetaArr['type'];
             }
             elseif($codeMetaArr['type']=='html'){
                 $return = $codeMetaArr['value'];
