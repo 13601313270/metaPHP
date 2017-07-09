@@ -501,7 +501,7 @@ final class phpInterpreter{
                             }
                             $childResult['property'] = $canshuArr;
                         }
-                        elseif(in_array($nextKeyWord,array('null','__FILE__'))){
+                        elseif(in_array($nextKeyWord,array('null','__FILE__','$this'))){
                             $childResult['type'] = $nextKeyWord;
                         }
                         elseif($nextKeyWord=='#debug' && $this->forward()==='('){
@@ -684,6 +684,9 @@ final class phpInterpreter{
             }
             elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue'))){
                 return $tabStr.$codeMetaArr['type'];
+            }
+            elseif(in_array($codeMetaArr['type'],array('null','__FILE__','$this'))){
+                $return = $codeMetaArr['type'];
             }
             elseif($codeMetaArr['type']=='class'){
                 $return = $tabStr;
@@ -989,9 +992,6 @@ final class phpInterpreter{
             }
             elseif(in_array($codeMetaArr['type'],array('--','++'))){
                 $return = $this->getCodeByCodeMeta($codeMetaArr['object1'],0).$codeMetaArr['type'];
-            }
-            elseif(in_array($codeMetaArr['type'],array('null','__FILE__'))){
-                $return = $codeMetaArr['type'];
             }
             elseif($codeMetaArr['type']=='html'){
                 $return = $codeMetaArr['value'];
