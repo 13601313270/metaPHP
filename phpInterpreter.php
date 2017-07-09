@@ -908,28 +908,29 @@ final class phpInterpreter{
                 $return = $tabStr.$codeMetaArr['type'].' '.$this->getCodeByCodeMeta($codeMetaArr['value'],0);
             }
             elseif($codeMetaArr['type']=='array'){
+                //这段一直写的不好.未来优化
                 if(empty($codeMetaArr['child'])){
                     $return = $tabStr.'array()';
                 }else{
-                    $_return = array();
                     $isShowMoreLine = false;//是否输出了多行
-                    foreach($codeMetaArr['child'] as $k=>$child){
-                        if($child===null){continue;}
-                        if(in_array($child['type'],array('comments','comment'))){
-                            //注释后面不加逗号
-                            $isShowMoreLine = true;
-                            $_return[]= $this->getCodeByCodeMeta($child,0);
-                        }else{
-                            $_return[]= $this->getCodeByCodeMeta($child,0).($k!=count($codeMetaArr['child'])-1?",":'');
+                    if($tab>0){
+                        $isShowMoreLine = true;
+                    }else{
+                        foreach($codeMetaArr['child'] as $k=>$child){
+                            if($child===null){continue;}
+                            if(in_array($child['type'],array('comments','comment'))){
+                                $isShowMoreLine = true;//注释后面不能加逗号
+                            }elseif(isset($child['value']['child'])){
+                                $isShowMoreLine = true;
+                            }
                         }
                     }
                     $return = $tabStr.'array('.($isShowMoreLine?"\n":'');
-                    foreach($_return as $k=>$v){
-                        if($isShowMoreLine){
-                            $return .= $this->getTabStr($tab+1).$v."\n";
-                        }else{
-                            $return .= $v;
-                        }
+                    foreach($codeMetaArr['child'] as $k=>$child){
+                        if($child===null){continue;}
+                        $return .= $this->getCodeByCodeMeta($child,$isShowMoreLine?($tab+1):0).
+                            ($k!=count($codeMetaArr['child'])-1?",":'').
+                            ($isShowMoreLine?"\n":'');
                     }
                     $return .= ($isShowMoreLine?$tabStr:'').')';
                 }
