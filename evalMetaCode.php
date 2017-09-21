@@ -261,5 +261,6 @@ class evalMetaCode{
             echo "无法识别的meta代码\n";
             print_r($code);
         }
+        return null;
     }
 }
