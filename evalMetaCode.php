@@ -46,7 +46,7 @@ class evalMetaCode{
                 foreach($code['child'] as $v){
                     $this->base($v,$code);
                     if($this->isExit){
-                        return null;
+                        return '';
                     }
                 }
             }
@@ -55,7 +55,7 @@ class evalMetaCode{
             $code = $metaApi->getCodeByCodeMeta($code,0);
             eval($code);
         }elseif(in_array($code['type'],array('comments','phpBegin'))){
-            return null;
+            return '';
         }elseif($code['type']=='functionCall'){
             if($code['name']=='include_once'){
 
@@ -65,7 +65,7 @@ class evalMetaCode{
                 foreach($code['property'] as $v){
                     $params[] = &$this->base($v,$code);
                     if($this->isExit){
-                        return null;
+                        return '';
                     }
                 }
                 $reflectionMethod = new ReflectionFunction($funcName);
@@ -74,21 +74,21 @@ class evalMetaCode{
         }elseif($code['type']=='='){
             $obj1 = &$this->base($code['object1'],$code);
             if($this->isExit){
-                return null;
+                return '';
             }
             $obj1 = $this->base($code['object2'],$code);
             if($this->isExit){
-                return null;
+                return '';
             }
         }elseif($code['type']=='array'){
             $returnArr = array();
             foreach($code['child'] as $k=>$v){
                 if($v['type']=='arrayValue'){
                     $returnArr[$this->base($v['key'],$v)] = $this->base($v['value'],$code);
-                    if($this->isExit){return null;}
+                    if($this->isExit){return '';}
                 }else{
                     $returnArr[] = $this->base($v,$code);
-                    if($this->isExit){return null;}
+                    if($this->isExit){return '';}
                 }
             }
             return $returnArr;
@@ -102,7 +102,7 @@ class evalMetaCode{
             return new $className();
         }elseif($code['type']=='arrayGet'){
             $obj = &$this->base($code['object'],$code);
-            if($this->isExit){return null;}
+            if($this->isExit){return '';}
             return $obj[$this->base($code['key'],$code,$obj)];
         }elseif($code['type']=='objectParams'){
             $obj = &$this->base($code['object'],$code);
@@ -111,7 +111,7 @@ class evalMetaCode{
             }else{
                 $paramName = &$this->base($code['name'],$code,$obj);
             }
-            if($this->isExit){return null;}
+            if($this->isExit){return '';}
             return $obj->$paramName;
         }elseif($code['type']=='objectFunction'){
             $obj = &$this->base($code['object'],$code);
@@ -120,7 +120,7 @@ class evalMetaCode{
             if(isset($code['property'])){
                 foreach($code['property'] as $v){
                     $params[] = &$this->base($v,$code);
-                    if($this->isExit){return null;}
+                    if($this->isExit){return '';}
                 }
             }
             $reflectionMethod = new ReflectionMethod(get_class($obj),$funcName);
@@ -131,10 +131,10 @@ class evalMetaCode{
             return $reflectionMethod->invokeArgs(null, array());
         }elseif($code['type']=='returnEvalValue'){
             $this->returnEvalValue[$this->base($code['key'],$code)] = $this->base($code['value'],$code);
-            if($this->isExit){return null;}
+            if($this->isExit){return '';}
         }elseif($code['type']=='echo'){
             echo $this->base($code['value'],$code);
-            if($this->isExit){return null;}
+            if($this->isExit){return '';}
         }
         elseif($code['type']=='html'){
             echo $code['value'];
@@ -150,11 +150,11 @@ class evalMetaCode{
         }
         elseif($code['type']=='if'){
             $isTrye = $this->base($code['value'],$code);
-            if($this->isExit){return null;}
+            if($this->isExit){return '';}
             if($isTrye){
                 foreach($code['child'] as $v){
                     $this->base($v,$code);
-                    if($this->isExit){return null;}
+                    if($this->isExit){return '';}
                 }
             }
         }
@@ -165,14 +165,14 @@ class evalMetaCode{
             return !$this->base($code['value'],$code);
         }
         elseif($code['type']=='null'){
-            return null;
+            return '';
         }
         elseif($code['type']=='foreach'){
             foreach($this->base($code['object'],$code) as $k=>$v){
                 $name = $code['key']['name'];
                 if($code['key']['type']=='objectParams'){
                     $obj = $this->base($code['key']['object'],$code['key']);
-                    if($this->isExit){return null;}
+                    if($this->isExit){return '';}
                     $obj->$name = $k;
                 }else{
                     $this->runTimeVariable[$name] = $k;
@@ -180,14 +180,14 @@ class evalMetaCode{
                 $name2 = $code['value']['name'];
                 if($code['value']['type']=='objectParams'){
                     $obj = $this->base($code['value']['object'],$code);
-                    if($this->isExit){return null;}
+                    if($this->isExit){return '';}
                     $obj->$name2 = $v;
                 }else{
                     $this->runTimeVariable[$name2] = $v;
                 }
                 foreach($code['child'] as $vv){
                     $this->base($vv,$code);
-                    if($this->isExit){return null;}
+                    if($this->isExit){return '';}
                 }
             }
             unset($this->runTimeVariable[$name]);
@@ -261,6 +261,6 @@ class evalMetaCode{
             echo "无法识别的meta代码\n";
             print_r($code);
         }
-        return null;
+        return '';
     }
 }
