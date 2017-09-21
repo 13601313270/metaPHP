@@ -134,6 +134,7 @@ class evalMetaCode{
             $this->returnEvalValue[$this->base($code['key'],$code)] = $this->base($code['value'],$code);
             if($this->isExit){return $noneObj;}
         }elseif($code['type']=='echo'){
+            echo $this->base($code['value'],$code);
             if($this->isExit){return $noneObj;}
         }
         elseif($code['type']=='html'){
