@@ -938,6 +938,12 @@ final class phpInterpreter{
                 }
             }
             elseif(in_array($codeMetaArr['type'],array('int','integer','8int'))){
+                if($codeMetaArr['type']=='int'){
+                    if(preg_match('/^\d+$/',$codeMetaArr['data'])){
+                    }else{
+                        throw new Exception('数据类型int,的值不是数值类型');
+                    }
+                }
                 $return = $tabStr.$codeMetaArr['data'];
             }
             elseif($codeMetaArr['type']=='arrayValue'){
