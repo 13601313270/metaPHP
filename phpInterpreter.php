@@ -790,7 +790,7 @@ final class phpInterpreter{
                 $return = $tabStr.$codeMetaArr['name'];
             }
             elseif($codeMetaArr['type']=='string'){
-                if($codeMetaArr['borderStr']=='\''){
+                if(isset($codeMetaArr['borderStr']) && $codeMetaArr['borderStr']=='\''){
                     $codeMetaArr['data'] = str_replace("'",'\\\'',$codeMetaArr['data']);
                     $return = $tabStr.'\''.$codeMetaArr['data'].'\'';
                 }else{
