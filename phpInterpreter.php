@@ -71,11 +71,13 @@ final class phpInterpreter{
         while(true){
             if($yunxingshiType=='html'){
                 $html = $this->searchInsetStr("<?php");
-                $return[] = array(
-                    'lineNum'=>$this->lineNum,
-                    'type'=>'html',
-                    'value'=> $html
-                );
+                if($html!==''){
+                    $return[] = array(
+                        'lineNum'=>$this->lineNum,
+                        'type'=>'html',
+                        'value'=> $html
+                    );
+                }
                 $this->lineNum+= substr_count($html,"\n");
                 $yunxingshiType = 'window';
                 if(trim(implode('',$this->codeArr)) !== ''){
