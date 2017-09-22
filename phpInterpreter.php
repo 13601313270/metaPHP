@@ -993,7 +993,7 @@ final class phpInterpreter{
                     }
                 }
                 $return .= $tabStr.'}catch(';
-                $return .= $this->getCodeByCodeMeta($codeMetaArr['catch'],$tab+1);
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['catch'],0);
                 $return .= "){\n";
                 foreach($codeMetaArr['catchChild'] as $k=>$v){
                     $return .= $this->getCodeByCodeMeta($v,$tab+1);
