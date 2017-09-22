@@ -174,12 +174,11 @@ final class phpInterpreter{
                                     $nextWord = $this->forward(true);
                                     if(substr($nextWord,0,1)=='$'){
                                         $childResult['propertyType'][] = '';
-                                        $childResult['property'][] = $this->_getCodeMetaByCode('code','',array(',',')'));
                                     }else{
                                         $childResult['propertyType'][] = $nextWord;
                                         $this->forward();
-                                        $childResult['property'][] = $this->_getCodeMetaByCode('code','',array(',',')'));
                                     }
+                                    $childResult['property'][] = $this->_getCodeMetaByCode('code','',array(',',')'));
                                     $this->forward();
                                 }
                             }else{
