@@ -426,7 +426,7 @@ final class phpInterpreter{
                         }
                         elseif(in_array($nextKeyWord,array('!'))){
                             $childResult['type'] = $nextKeyWord;
-                            $childResult['value'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
+                            $childResult['object1'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                         }
                         elseif(in_array($nextKeyWord,array('true','false'))){
                             //bool变量
