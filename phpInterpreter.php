@@ -279,6 +279,18 @@ final class phpInterpreter{
                                 $childResult['property'] = $canshuArr;
                             }
                         }
+                        elseif($nextKeyWord=='for'){
+                            $childResult['type'] = $nextKeyWord;
+                            $childResult['value'] = array(
+                            );
+                            $childResult['value'][] = $this->_getCodeMetaByCode('code','(',';');
+                            $this->forward();
+                            $childResult['value'][] = $this->_getCodeMetaByCode('code','',';');
+                            $this->forward();
+                            $childResult['value'][] = $this->_getCodeMetaByCode('code','',')');
+                            $this->forward();
+                            $childResult['child'] = $this->_getCodeMetaByCode($nextKeyWord,'{','}',true);
+                        }
                         elseif($nextKeyWord=='foreach'){
                             $childResult['type'] = $nextKeyWord;
                             $childResult['object'] = $this->_getCodeMetaByCode('code','(','as');
