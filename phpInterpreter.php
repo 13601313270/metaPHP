@@ -227,7 +227,7 @@ final class phpInterpreter{
                         }
                         elseif($nextKeyWord=='new'){
                             $childResult['type'] = $nextKeyWord;
-                            $childResult['className'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord),true);
+                            $childResult['name'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord),true);
                             if($this->forward(true)==';'){//new后面允许不带()
                             }else{
                                 if($this->forward()!='('){
@@ -857,7 +857,7 @@ final class phpInterpreter{
                 }
             }
             elseif($codeMetaArr['type']=='new'){
-                $return = $tabStr.'new '.$this->getCodeByCodeMeta($codeMetaArr['className'],0);
+                $return = $tabStr.'new '.$this->getCodeByCodeMeta($codeMetaArr['name'],0);
                 if(isset($codeMetaArr['property'])){
                     $allParams = array();
                     foreach($codeMetaArr['property'] as $param){
