@@ -426,7 +426,7 @@ final class phpInterpreter{
                         }
                         elseif(in_array($nextKeyWord,array('!'))){
                             $childResult['type'] = $nextKeyWord;
-                            $childResult['object1'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
+                            $childResult['object'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                         }
                         elseif(in_array($nextKeyWord,array('true','false'))){
                             //bool变量
@@ -449,7 +449,7 @@ final class phpInterpreter{
                             $obj = $return[count($return)-1];
                             array_pop($return);
                             $childResult['type'] = $nextKeyWord;
-                            $childResult['object1'] = $obj;
+                            $childResult['object'] = $obj;
                         }
                         elseif(in_array($nextKeyWord,array('parent','self'))){
                             //父类
@@ -485,7 +485,7 @@ final class phpInterpreter{
                         }
                         elseif($nextKeyWord=='&'){
                             $childResult['type'] = '&';
-                            $childResult['value'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
+                            $childResult['object'] = $this->_getCodeMetaByCode('code','',$this->afterShunxu($nextKeyWord));
                         }
                         elseif(preg_match('/^0(\d+)$/',$nextKeyWord,$match)){
                             //8进制整数
