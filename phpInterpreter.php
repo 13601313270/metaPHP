@@ -148,7 +148,7 @@ final class phpInterpreter{
                             do{
                                 $keyTemp = $this->forward();
                                 if($keyTemp!=='{'){
-                                    if(in_array($keyTemp,array('extends'))){
+                                    if(in_array($keyTemp,array('extends','implements'))){
                                         $childResult[$keyTemp] = $this->forward();
                                     }
                                 }
@@ -712,7 +712,7 @@ final class phpInterpreter{
                 }
                 $return .= 'class '.$codeMetaArr['name'];
                 foreach($codeMetaArr as $k=>$v){
-                    if(in_array($k,array('extends'))){
+                    if(in_array($k,array('extends','implements'))){
                         $return.=' '.$k.' '.$v;
                     }
                 }
