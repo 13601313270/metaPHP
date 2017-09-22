@@ -293,15 +293,17 @@ final class phpInterpreter{
                         }
                         elseif($nextKeyWord=='foreach'){
                             $childResult['type'] = $nextKeyWord;
-                            $childResult['object'] = $this->_getCodeMetaByCode('code','(','as');
+                            $childResult['value'] = array(
+                                'object' => $this->_getCodeMetaByCode('code','(','as')
+                            );
                             $this->forward();
                             $next = $this->_getCodeMetaByCode('code','',array('=>',')'));
                             if($this->forward(true)=='=>'){
-                                $childResult['key'] = $next;
+                                $childResult['value']['key'] = $next;
                                 $this->forward();
-                                $childResult['value'] = current($this->_getCodeMetaByCode('codeBlock','',')'));
+                                $childResult['value']['value'] = current($this->_getCodeMetaByCode('codeBlock','',')'));
                             }else{
-                                $childResult['value'] = $next;
+                                $childResult['value']['value'] = $next;
                                 $this->forward();
                             }
                             $childResult['child'] = $this->_getCodeMetaByCode($nextKeyWord,'{','}',true);
