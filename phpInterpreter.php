@@ -646,7 +646,7 @@ final class phpInterpreter{
         return $return;
     }
     //不用分号结尾的类型
-    private $noFenhaoType = array('comment','comments','phpBegin','phpEnd','html');
+    private $noFenhaoType = array('comment', 'comments', 'phpBegin', 'phpEnd', 'html', 'class');
     /*
      * 元代码还原代码器
      * @param codeMetaArr 元代码
@@ -717,10 +717,12 @@ final class phpInterpreter{
                     }
                 }
                 $return .= "{\n";
-                foreach($codeMetaArr['child'] as $v){
-                    $return .= $this->getCodeByCodeMeta($v,$tab+1)."\n";
+                if (isset($codeMetaArr['child'])) {
+                    foreach ($codeMetaArr['child'] as $v) {
+                        $return .= $this->getCodeByCodeMeta($v, $tab + 1) . "\n";
+                    }
                 }
-                $return .= $tabStr."}\n";
+                $return .= $tabStr."}";
             }
             elseif($codeMetaArr['type']=='property'){
                 $return = $tabStr;
