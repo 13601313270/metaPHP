@@ -700,7 +700,7 @@ final class phpInterpreter{
             elseif(in_array($codeMetaArr['type'],array('parent','self','break','continue'))){
                 return $tabStr.$codeMetaArr['type'];
             }
-            elseif(in_array($codeMetaArr['type'],array('null','__FILE__','$this'))){
+            elseif(in_array($codeMetaArr['type'],array('null','__FILE__','E_ALL','E_NOTICE','$this'))){
                 $return = $codeMetaArr['type'];
             }
             elseif($codeMetaArr['type']=='class'){
@@ -802,7 +802,11 @@ final class phpInterpreter{
                 $return = $tabStr.$codeMetaArr['name'];
             }
             elseif($codeMetaArr['type']=='variable'){
-                $return = $tabStr.$codeMetaArr['name'];
+                if (isset($codeMetaArr['name'])) {
+                    $return = $tabStr . $codeMetaArr['name'];
+                } else {
+                    $return = $tabStr . $codeMetaArr['data'];
+                }
             }
             elseif($codeMetaArr['type']=='string'){
                 if(isset($codeMetaArr['borderStr']) && $codeMetaArr['borderStr']=='\''){
@@ -1020,7 +1024,7 @@ final class phpInterpreter{
             }
             else{
                 //异常,上面写的没错的话,进入不到这里,这个只是监控上面代码写的对不对的报警
-                return '!!'.$codeMetaArr['type'];
+                return $codeMetaArr['type'];
             }
         }elseif(is_string($codeMetaArr)){
             $return = $codeMetaArr;
