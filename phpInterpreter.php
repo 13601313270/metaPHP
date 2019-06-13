@@ -746,7 +746,11 @@ final class phpInterpreter{
                         }
                     }
                 }
-                $return .= 'function '.$codeMetaArr['name'].'(';
+                if (isset($codeMetaArr['name'])) {
+                    $return .= 'function '.$codeMetaArr['name'].'(';
+                } else {
+                    $return .= 'function(';
+                }
                 if(isset($codeMetaArr['property'])){
                     foreach($codeMetaArr['property'] as $k=>$v){
                         if($k!=0){
