@@ -145,14 +145,14 @@ final class phpInterpreter{
                             $keyName = $this->forward();
                             $childResult['name'] = $keyName;
                             //后置描述符
-                            do{
+                            do {
                                 $keyTemp = $this->forward();
                                 if($keyTemp!=='{'){
                                     if(in_array($keyTemp,array('extends','implements'))){
                                         $childResult[$keyTemp] = $this->forward();
                                     }
                                 }
-                            }while($keyTemp!=='{');
+                            } while ($keyTemp !== '{' && $keyTemp !== false);
                             $childResult['child'] = $this->_getCodeMetaByCode($type,'','}');
                         }
                         //定义函数
