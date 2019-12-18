@@ -635,6 +635,12 @@ final class phpInterpreter{
         }
     }
 
+    public function getHtml()
+    {
+        $api = new getHtmlByMeta();
+        return $api->getCodeByCodeMeta($this->codeMeta, 0);
+    }
+
     /*
      * 生成对应的缩进符号
      *
@@ -665,8 +671,9 @@ final class phpInterpreter{
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,0);
                     if(isset($v['child']) || in_array($v['type'],$this->noFenhaoType)){
-                        if($v['type']!=='html'){
-                            $return .="\n";
+                        // 这些元素本身已经输出了换行，或者不允许换行
+                        if (!in_array($v['type'], ['html', 'phpBegin', 'phpEnd'])) {
+                            $return .= "\n";
                         }
                     }else{
                         $return .=";\n";

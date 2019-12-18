@@ -12,3 +12,4 @@ include_once (metaPHPRoot.'/metaSearch.php');
 include_once (metaPHPRoot.'/githubAction.php');
 include_once (metaPHPRoot.'/runSomeTime.php');
 include_once (metaPHPRoot.'/evalMetaCode.php');
+include_once (metaPHPRoot.'/getHtmlByMeta.php');
