@@ -5,6 +5,8 @@
  * Date: 2017/2/16
  * Time: 上午11:52
  */
+include_once 'codeStyle.php';
+
 final class phpInterpreter{
     private $savedCode;
     private $codeArr;
@@ -641,7 +643,7 @@ final class phpInterpreter{
     private function getTabStr($tab){
         $return = '';
         for($i=0;$i<$tab;$i++){
-            $return.='    ';
+            $return .= codeStyle::$indent;
         }
         return $return;
     }
@@ -681,7 +683,7 @@ final class phpInterpreter{
                 $return = $tabStr.'/*'.$codeMetaArr['value']."*/\n";
             }
             elseif($codeMetaArr['type']=='comment'){
-                $return = $tabStr.'//'.$codeMetaArr['value'];
+                $return = $tabStr . '//' . codeStyle::$spaced_comment . $codeMetaArr['value'];
             }
             elseif(in_array($codeMetaArr['type'],array('boolean','bool'))){
                 return ($codeMetaArr['data']===true||$codeMetaArr['data']==='true')?'true':'false';
@@ -716,7 +718,7 @@ final class phpInterpreter{
                         $return.=' '.$k.' '.$v;
                     }
                 }
-                $return .= "{\n";
+                $return .= codeStyle::$apace_before_class_lbrace . "{\n";
                 if (isset($codeMetaArr['child'])) {
                     foreach ($codeMetaArr['child'] as $v) {
                         $return .= $this->getCodeByCodeMeta($v, $tab + 1) . "\n";
@@ -733,7 +735,7 @@ final class phpInterpreter{
                 }
                 $return.=$codeMetaArr['name'];
                 if(isset($codeMetaArr['value'])){
-                    $return .= ' = ';
+                    $return .= codeStyle::$spaceInfixOps[0] . '=' . codeStyle::$spaceInfixOps[1];
                     $valuve = $this->getCodeByCodeMeta($codeMetaArr['value'],$tab);
                     $return .= preg_replace('/^\s+/','',$valuve);
                 }
