@@ -189,6 +189,9 @@ final class phpInterpreter{
                             }else{
                                 $this->forward();
                             }
+                            if ($this->forward(true) === 'use') {
+                                $childResult['use'] = $this->_getCodeMetaByCode('code', '', array('{'));
+                            }
                             $childResult['child'] = $this->_getCodeMetaByCode($type,'{','}');
                         }
                         $return[] = $childResult;
@@ -776,7 +779,11 @@ final class phpInterpreter{
                         $return.= $this->getCodeByCodeMeta($v,0);
                     }
                 }
-                $return.="){\n";
+                $return .= ")";
+                if (isset($codeMetaArr['use'])) {
+                    $return .= ' ' . $this->getCodeByCodeMeta($codeMetaArr['use'], 0);
+                }
+                $return .= "{\n";
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,$tab+1);
                     if(isset($v['child']) || in_array($v['type'],$this->noFenhaoType)){

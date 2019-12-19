@@ -134,7 +134,11 @@ final class getHtmlByMeta
                         $return .= $this->getCodeByCodeMeta($v, 0);
                     }
                 }
-                $return .= "){\n";
+                $return .= ")";
+                if (isset($codeMetaArr['use'])) {
+                    $return .= ' ' . $this->getCodeByCodeMeta($codeMetaArr['use'], 0);
+                }
+                $return .= "{\n";
                 foreach ($codeMetaArr['child'] as $v) {
                     $return .= $this->getCodeByCodeMeta($v, $tab + 1);
                     if (isset($v['child']) || in_array($v['type'], $this->noFenhaoType)) {
