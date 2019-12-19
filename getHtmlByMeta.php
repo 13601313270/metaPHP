@@ -293,28 +293,51 @@ final class getHtmlByMeta
                 if (empty($codeMetaArr['child'])) {
                     $return = $tabStr . '<span class="key_words">array</span>()';
                 } else {
-                    $isShowMoreLine = false;//是否输出了多行
-                    if ($tab > 0) {
-                        $isShowMoreLine = true;
-                    } else {
+                    if (codeStyle::$arrayElementNewline === 'auto') {
+                        $isShowMoreLine = false;
                         foreach ($codeMetaArr['child'] as $k => $child) {
                             if ($child === null) {
                                 continue;
                             }
                             if (in_array($child['type'], array('comments', 'comment'))) {
                                 $isShowMoreLine = true;//注释后面不能加逗号
+                                break;
                             } elseif (isset($child['value']['child'])) {
+                                $isShowMoreLine = true;
+                                break;
+                            }
+                        }
+                        if ($isShowMoreLine === false) {
+                            // 键值对数组，数量较多时
+                            if (isset($codeMetaArr['child'][0]['key']) && count($codeMetaArr['child']) > 5) {
                                 $isShowMoreLine = true;
                             }
                         }
+                        foreach ($codeMetaArr['child'] as $k => $child) {
+                            if ($child === null) {
+                                continue;
+                            }
+                            if (in_array($child['type'], array('comments', 'comment'))) {
+                                $isShowMoreLine = true;//注释后面不能加逗号
+                                break;
+                            } elseif (isset($child['value']['child'])) {
+                                $isShowMoreLine = true;
+                                break;
+                            }
+                        }
+                    } else if (codeStyle::$arrayElementNewline === 'never') {
+                        $isShowMoreLine = false;//是否输出了多行
+                    } else {
+                        $isShowMoreLine = true;//是否输出了多行
                     }
+
                     $return = $tabStr . '<span class="key_words">array</span>(' . ($isShowMoreLine ? "\n" : '');
                     foreach ($codeMetaArr['child'] as $k => $child) {
                         if ($child === null) {
                             continue;
                         }
                         $return .= $this->getCodeByCodeMeta($child, $isShowMoreLine ? ($tab + 1) : 0) .
-                            ($k != count($codeMetaArr['child']) - 1 ? "," : '') .
+                            ($k != count($codeMetaArr['child']) - 1 ? codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1] : '') .
                             ($isShowMoreLine ? "\n" : '');
                     }
                     $return .= ($isShowMoreLine ? $tabStr : '') . ')';
