@@ -58,7 +58,7 @@ final class getHtmlByMeta
             } elseif ($codeMetaArr['type'] == 'comments') {
                 $return = $tabStr . '/*' . $codeMetaArr['value'] . "*/\n";
             } elseif ($codeMetaArr['type'] == 'comment') {
-                $return = $tabStr . '//' . codeStyle::$spaced_comment . $codeMetaArr['value'];
+                $return = $tabStr . '<span class="comment">//' . codeStyle::$spaced_comment . $codeMetaArr['value'] . '</span>';
             } elseif (in_array($codeMetaArr['type'], array('boolean', 'bool'))) {
                 return ($codeMetaArr['data'] === true || $codeMetaArr['data'] === 'true') ? 'true' : 'false';
             } elseif ($codeMetaArr['type'] == 'exit') {
@@ -82,10 +82,10 @@ final class getHtmlByMeta
                         $return .= $k . " ";
                     }
                 }
-                $return .= '<span class="class">class</span> ' . '<span class="class_name">' . $codeMetaArr['name'] . '</span>';
+                $return .= '<span class="key_words">class</span> ' . '<span class="class_name">' . $codeMetaArr['name'] . '</span>';
                 foreach ($codeMetaArr as $k => $v) {
                     if (in_array($k, array('extends', 'implements'))) {
-                        $return .= ' ' . $k . ' ' . $v;
+                        $return .= ' ' . '<span class="key_words">' . $k . '</span> ' . $v;
                     }
                 }
                 $return .= codeStyle::$apace_before_class_lbrace . "{\n";
@@ -99,10 +99,10 @@ final class getHtmlByMeta
                 $return = $tabStr;
                 foreach ($codeMetaArr as $k => $v) {
                     if (in_array($k, $this->dataTypeDesc['property']['desc'])) {
-                        $return .= $k . ' ';
+                        $return .= '<span class="key_words">' . $k . '</span>' . ' ';
                     }
                 }
-                $return .= $codeMetaArr['name'];
+                $return .= '<span class="class_property">' . $codeMetaArr['name'] . '</span>';
                 if (isset($codeMetaArr['value'])) {
                     $return .= codeStyle::$spaceInfixOps[0] . '=' . codeStyle::$spaceInfixOps[1];
                     $valuve = $this->getCodeByCodeMeta($codeMetaArr['value'], $tab);
@@ -182,10 +182,10 @@ final class getHtmlByMeta
             } elseif ($codeMetaArr['type'] == 'string') {
                 if (isset($codeMetaArr['borderStr']) && $codeMetaArr['borderStr'] == '\'') {
                     $codeMetaArr['data'] = str_replace("'", '\\\'', $codeMetaArr['data']);
-                    $return = $tabStr . '\'' . $codeMetaArr['data'] . '\'';
+                    $return = $tabStr . '<span class="string">\'' . $codeMetaArr['data'] . '\'</span>';
                 } else {
                     $codeMetaArr['data'] = str_replace('"', '\\"', $codeMetaArr['data']);
-                    $return = $tabStr . '"' . $codeMetaArr['data'] . '"';
+                    $return = $tabStr . '<span class="string">"' . $codeMetaArr['data'] . '"</span>';
                 }
             } elseif ($codeMetaArr['type'] == 'objectParams') {
                 $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['object'], 0) . '->' . $codeMetaArr['name'];
@@ -203,7 +203,7 @@ final class getHtmlByMeta
             } elseif (in_array($codeMetaArr['type'], array('staticFunction', 'objectFunction', '__construct'))) {
                 $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['object'], 0);
                 $return .= $codeMetaArr['type'] == 'objectFunction' ? '->' : '::';
-                $return .= $codeMetaArr['name'];
+                $return .= '<span class="class_property_call">' . $codeMetaArr['name'] . '</span>';
                 $allParams = array();
                 if (isset($codeMetaArr['property'])) {
                     foreach ($codeMetaArr['property'] as $param) {
@@ -287,7 +287,7 @@ final class getHtmlByMeta
             } elseif ($codeMetaArr['type'] == 'array') {
                 //这段一直写的不好.未来优化
                 if (empty($codeMetaArr['child'])) {
-                    $return = $tabStr . 'array()';
+                    $return = $tabStr . '<span class="key_words">array</span>()';
                 } else {
                     $isShowMoreLine = false;//是否输出了多行
                     if ($tab > 0) {
@@ -304,7 +304,7 @@ final class getHtmlByMeta
                             }
                         }
                     }
-                    $return = $tabStr . 'array(' . ($isShowMoreLine ? "\n" : '');
+                    $return = $tabStr . '<span class="key_words">array</span>(' . ($isShowMoreLine ? "\n" : '');
                     foreach ($codeMetaArr['child'] as $k => $child) {
                         if ($child === null) {
                             continue;
