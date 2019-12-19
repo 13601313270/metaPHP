@@ -112,6 +112,7 @@ final class phpInterpreter{
                 else{
                     //当前是否是类属性(在class运行时,并且关键词带有$符号)
                     $isClassProperty = ($yunxingshiType=='class'&&substr($nextKeyWord,0,1)=='$')?true:false;
+
                     //前置修饰关键词
                     if(isset($this->dataTypeDesc2[$yunxingshiType]) && in_array($nextKeyWord,$this->dataTypeDesc2[$yunxingshiType])){
                         $zancun[] = $nextKeyWord;
@@ -160,13 +161,15 @@ final class phpInterpreter{
                         //定义函数
                         elseif($type=='function'){
                             $keyName = $this->forward();
-                            $childResult['name'] = $keyName;
-                            if($keyName=='&'){
-                                $childResult['&'] = true;
-                                $childResult['name'] = $this->forward();
-                            }
-                            if($this->forward()!=='('){
-                                $this->throwWrong('函数名后面带上()参数');
+                            if ($keyName !== '(') { // 非匿名函数
+                                $childResult['name'] = $keyName;
+                                if($keyName=='&'){
+                                    $childResult['&'] = true;
+                                    $childResult['name'] = $this->forward();
+                                }
+                                if($this->forward()!=='('){
+                                    $this->throwWrong('函数名后面带上()参数');
+                                }
                             }
                             //函数参数
                             $childResult['property'] = array();
@@ -1170,7 +1173,7 @@ final class phpInterpreter{
             'desc'=>array('final','abstract'),
         ),
         'function'=>array(
-            'runEnvironment'=>array('window','class'),
+            'runEnvironment' => array('window', 'class', 'code'),
             'desc'=>array('private','protected','public','static','final'),
         ),
         'property'=>array(

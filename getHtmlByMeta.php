@@ -395,7 +395,7 @@ final class getHtmlByMeta
             'desc' => array('final', 'abstract'),
         ),
         'function' => array(
-            'runEnvironment' => array('window', 'class'),
+            'runEnvironment' => array('window', 'class', 'code'),
             'desc' => array('private', 'protected', 'public', 'static', 'final'),
         ),
         'property' => array(
