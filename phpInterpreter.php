@@ -174,19 +174,21 @@ final class phpInterpreter{
                             //函数参数
                             $childResult['property'] = array();
                             $childResult['propertyType'] = array();
-                            if($this->forward(true)!=')'){
-                                while($this->forward(true)!='{'){
+                            if ($this->forward(true) != ')') {
+                                while ($this->forward(true) != '{') {
                                     $nextWord = $this->forward(true);
-                                    if(substr($nextWord,0,1)=='$'){
+                                    if (substr($nextWord, 0, 1) == '$') {
                                         $childResult['propertyType'][] = '';
-                                    }else{
+                                    } else {
                                         $childResult['propertyType'][] = $nextWord;
                                         $this->forward();
                                     }
-                                    $childResult['property'][] = $this->_getCodeMetaByCode('code','',array(',',')'));
-                                    $this->forward();
+                                    $childResult['property'][] = $this->_getCodeMetaByCode('code', '', array(',', ')'));
+                                    if ($this->forward() === ')') {
+                                        break;
+                                    }
                                 }
-                            }else{
+                            } else {
                                 $this->forward();
                             }
                             if ($this->forward(true) === 'use') {
