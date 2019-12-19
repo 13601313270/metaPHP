@@ -14,4 +14,5 @@ class codeStyle
     public static $indent = '    ';// 锁进
     public static $apace_before_class_lbrace = " \n";// 类声明和后面的第一个大括号之间的输出
     public static $spaced_comment = ' ';// 注释和后面内容之间的部分，一般用来设置是否有空格
+    public static $commaSpacing = ['', ' '];// 逗号周围使用空格
 }

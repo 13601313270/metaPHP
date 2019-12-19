@@ -42,8 +42,8 @@ final class phpInterpreter{
     }
     private function throwWrong($msg){
         var_dump($msg);
-        $codeLast = array_splice($this->codeArr,0,200);
-        echo '错误定位:******     '.implode('',$codeLast)."\n";
+        $codeLast = array_splice($this->codeArr, 0, 200);
+        echo '错误定位:******     ' . implode('', $codeLast) . "\n";
         throw new Exception($msg);
     }
     /*
@@ -54,7 +54,8 @@ final class phpInterpreter{
      * @param beginStr 段落结束符
      * @return array
      **/
-    public function _getCodeMetaByCode($yunxingshiType,$beginStr,$endStr=false){
+    public function _getCodeMetaByCode($yunxingshiType, $beginStr, $endStr = false)
+    {
         $return = array();
         $zancun = array();//用于描述关键词的一些关键词
         //如果规定了begin字符,则必须遵守
@@ -773,7 +774,7 @@ final class phpInterpreter{
                 if(isset($codeMetaArr['property'])){
                     foreach($codeMetaArr['property'] as $k=>$v){
                         if($k!=0){
-                            $return.=',';
+                            $return .= codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1];
                         }
                         if(!empty($codeMetaArr['propertyType'][$k])){
                             $return .= $codeMetaArr['propertyType'][$k].' ';
@@ -855,7 +856,7 @@ final class phpInterpreter{
                 if($codeMetaArr['type']=='or'){
                     $return .= ' '.$codeMetaArr['type'].' ';
                 }else{
-                    $return .= $codeMetaArr['type'];
+                    $return .= codeStyle::$spaceInfixOps[0] . $codeMetaArr['type'] . codeStyle::$spaceInfixOps[1];
                 }
                 $value = $this->getCodeByCodeMeta($codeMetaArr['object2'],$tab);
                 $return .= preg_replace('/^\s+/','',$value);
@@ -870,7 +871,7 @@ final class phpInterpreter{
                         $paramStr = $this->getCodeByCodeMeta($param,$tab);
                         $allParams[] = preg_replace('/^'.$tabStr.'/','',$paramStr);
                     }
-                    $return .= '('.implode(',',$allParams).')';
+                    $return .= '('.implode(codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1],$allParams).')';
                 }else{
                     $return .= '()';
                 }
@@ -882,7 +883,7 @@ final class phpInterpreter{
                     foreach($codeMetaArr['property'] as $param){
                         $allParams[] = $this->getCodeByCodeMeta($param,0);
                     }
-                    $return .= '('.implode(',',$allParams).')';
+                    $return .= '('.implode(codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1],$allParams).')';
                 }else{
                     $return .= '()';
                 }
@@ -894,7 +895,7 @@ final class phpInterpreter{
                     foreach($codeMetaArr['property'] as $param){
                         $allParams[] = $this->getCodeByCodeMeta($param,0);
                     }
-                    $return .= '('.implode(',',$allParams).')';
+                    $return .= '('.implode(codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1],$allParams).')';
                 }else{
                     $return .= '()';
                 }

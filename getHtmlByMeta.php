@@ -79,7 +79,7 @@ final class getHtmlByMeta
                 $return = $tabStr;
                 foreach ($codeMetaArr as $k => $v) {
                     if (in_array($k, $this->dataTypeDesc['class']['desc'])) {
-                        $return .= $k . " ";
+                        $return .= '<span class="key_words">' . $k . "</span> ";
                     }
                 }
                 $return .= '<span class="key_words">class</span> ' . '<span class="class_name">' . $codeMetaArr['name'] . '</span>';
@@ -114,19 +114,19 @@ final class getHtmlByMeta
                 foreach ($codeMetaArr as $key => $value) {
                     if (in_array($key, $this->dataTypeDesc['function']['desc'])) {
                         if (isset($codeMetaArr[$key]) && $codeMetaArr[$key] == 1) {
-                            $return .= $key . ' ';
+                            $return .= '<span class="key_words">' . $key . '</span> ';
                         }
                     }
                 }
                 if (isset($codeMetaArr['name'])) {
-                    $return .= 'function ' . $codeMetaArr['name'] . '(';
+                    $return .= '<span class="key_words">function</span> <span class="function_declara">' . $codeMetaArr['name'] . '</span>(';
                 } else {
-                    $return .= 'function(';
+                    $return .= '<span class="key_words">function</span>(';
                 }
                 if (isset($codeMetaArr['property'])) {
                     foreach ($codeMetaArr['property'] as $k => $v) {
                         if ($k != 0) {
-                            $return .= ',';
+                            $return .= codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1];
                         }
                         if (!empty($codeMetaArr['propertyType'][$k])) {
                             $return .= $codeMetaArr['propertyType'][$k] . ' ';
@@ -179,7 +179,7 @@ final class getHtmlByMeta
                 $return = $tabStr . $codeMetaArr['name'];
             } elseif ($codeMetaArr['type'] == 'variable') {
                 if (isset($codeMetaArr['name'])) {
-                    $return = $tabStr . $codeMetaArr['name'];
+                    $return = $tabStr . '<span class="variable">' . $codeMetaArr['name'] . '</span>';
                 } else {
                     $return = $tabStr . $codeMetaArr['data'];
                 }
@@ -200,7 +200,7 @@ final class getHtmlByMeta
                 if ($codeMetaArr['type'] == 'or') {
                     $return .= ' ' . $codeMetaArr['type'] . ' ';
                 } else {
-                    $return .= $codeMetaArr['type'];
+                    $return .= codeStyle::$spaceInfixOps[0] . $codeMetaArr['type'] . codeStyle::$spaceInfixOps[1];
                 }
                 $value = $this->getCodeByCodeMeta($codeMetaArr['object2'], $tab);
                 $return .= preg_replace('/^\s+/', '', $value);
@@ -214,7 +214,7 @@ final class getHtmlByMeta
                         $paramStr = $this->getCodeByCodeMeta($param, $tab);
                         $allParams[] = preg_replace('/^' . $tabStr . '/', '', $paramStr);
                     }
-                    $return .= '(' . implode(',', $allParams) . ')';
+                    $return .= '(' . implode(codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1], $allParams) . ')';
                 } else {
                     $return .= '()';
                 }
@@ -225,18 +225,18 @@ final class getHtmlByMeta
                     foreach ($codeMetaArr['property'] as $param) {
                         $allParams[] = $this->getCodeByCodeMeta($param, 0);
                     }
-                    $return .= '(' . implode(',', $allParams) . ')';
+                    $return .= '(' . implode(codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1], $allParams) . ')';
                 } else {
                     $return .= '()';
                 }
             } elseif ($codeMetaArr['type'] == 'new') {
-                $return = $tabStr . 'new ' . $this->getCodeByCodeMeta($codeMetaArr['name'], 0);
+                $return = $tabStr . '<span class="key_words">new</span> ' . $this->getCodeByCodeMeta($codeMetaArr['name'], 0);
                 if (isset($codeMetaArr['property'])) {
                     $allParams = array();
                     foreach ($codeMetaArr['property'] as $param) {
                         $allParams[] = $this->getCodeByCodeMeta($param, 0);
                     }
-                    $return .= '(' . implode(',', $allParams) . ')';
+                    $return .= '(' . implode(codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1], $allParams) . ')';
                 } else {
                     $return .= '()';
                 }
@@ -326,7 +326,7 @@ final class getHtmlByMeta
                         throw new Exception('数据类型int,的值不是数值类型');
                     }
                 }
-                $return = $tabStr . $codeMetaArr['data'];
+                $return = $tabStr . '<span class="number">' . $codeMetaArr['data'] . '</span>';
             } elseif ($codeMetaArr['type'] == 'arrayValue') {
                 $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['key'], 0) . ' => ';
                 $value = $this->getCodeByCodeMeta($codeMetaArr['value'], $tab);
