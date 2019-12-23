@@ -16,5 +16,6 @@ class codeStyle
     public static $spaced_comment = ' ';// 注释和后面内容之间的部分，一般用来设置是否有空格
     public static $commaSpacing = ['', ' '];// 逗号周围使用空格
     public static $arrayElementNewline = 'auto';// 数组每一项独立一行，可选值有 allways->换行(默认)，never->不换行，auto->自动
+    public static $spaceBeforeBlocks = ' ';// 语句块之前的空格
 
 }

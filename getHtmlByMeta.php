@@ -60,9 +60,9 @@ final class getHtmlByMeta
             } elseif ($codeMetaArr['type'] == 'comment') {
                 $return = $tabStr . '<span class="comment">//' . codeStyle::$spaced_comment . $codeMetaArr['value'] . '</span>';
             } elseif (in_array($codeMetaArr['type'], array('boolean', 'bool'))) {
-                return ($codeMetaArr['data'] === true || $codeMetaArr['data'] === 'true') ? 'true' : 'false';
+                return '<span class="key_words">' . (($codeMetaArr['data'] === true || $codeMetaArr['data'] === 'true') ? 'true' : 'false') . '</span>';
             } elseif ($codeMetaArr['type'] == 'exit') {
-                $return = $tabStr . $codeMetaArr['type'];
+                $return = $tabStr . '<span class="key_words">' . $codeMetaArr['type'] . '</span>';
                 if (isset($codeMetaArr['property'])) {
                     $allParams = array();
                     foreach ($codeMetaArr['property'] as $param) {
@@ -138,7 +138,7 @@ final class getHtmlByMeta
                 if (isset($codeMetaArr['use'])) {
                     $return .= ' ' . $this->getCodeByCodeMeta($codeMetaArr['use'], 0);
                 }
-                $return .= "{\n";
+                $return .= codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach ($codeMetaArr['child'] as $v) {
                     $return .= $this->getCodeByCodeMeta($v, $tab + 1);
                     if (isset($v['child']) || in_array($v['type'], $this->noFenhaoType)) {
@@ -149,13 +149,13 @@ final class getHtmlByMeta
                 }
                 $return .= $tabStr . "}";
             } elseif (in_array($codeMetaArr['type'], array('if', 'else', 'elseif'))) {
-                $return = $tabStr . $codeMetaArr['type'];
+                $return = $tabStr . '<span class="key_words">' . $codeMetaArr['type'] . '</span>';
                 if ($codeMetaArr['type'] != 'else') {
                     $return .= '(';
                     $return .= $this->getCodeByCodeMeta($codeMetaArr['value'], 0);
                     $return .= ')';
                 }
-                $return .= "{\n";
+                $return .= codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach ($codeMetaArr['child'] as $v) {
                     $return .= $this->getCodeByCodeMeta($v, $tab + 1);
                     if (isset($v['child']) || $v['type'] == 'comment') {
@@ -194,7 +194,7 @@ final class getHtmlByMeta
             } elseif ($codeMetaArr['type'] == 'objectParams') {
                 $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['object'], 0) . '->' . $codeMetaArr['name'];
             } elseif ($codeMetaArr['type'] == 'return') {
-                $return = $tabStr . 'return ' . $this->getCodeByCodeMeta($codeMetaArr['value'], 0);
+                $return = $tabStr . '<span class="key_words">return</span> ' . $this->getCodeByCodeMeta($codeMetaArr['value'], 0);
             } elseif (in_array($codeMetaArr['type'], array('&&', '^', '||', 'or', '[]=', '+=', '-=', '==', '===', '>=', '<=', '!==', '!=', '>', '<', '.', '+', '-', '=', '.='))) {
                 $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['object1'], 0);
                 if ($codeMetaArr['type'] == 'or') {
@@ -247,7 +247,7 @@ final class getHtmlByMeta
                 if (isset($codeMetaArr['key'])) {
                     $return .= $this->getCodeByCodeMeta($codeMetaArr['key'], 0) . ' =>';
                 }
-                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'], 0) . "){\n";
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'], 0) . ")" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach ($codeMetaArr['child'] as $child) {
                     $return .= $this->getCodeByCodeMeta($child, $tab + 1);
                     if (isset($child['child']) || in_array($child['type'], $this->noFenhaoType)) {
@@ -259,7 +259,7 @@ final class getHtmlByMeta
                 $return .= $tabStr . '}';
             } elseif ($codeMetaArr['type'] == 'while') {
                 $return = $tabStr . 'while(';
-                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'], 0) . "){\n";
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'], 0) . ")" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach ($codeMetaArr['child'] as $child) {
                     $return .= $this->getCodeByCodeMeta($child, $tab + 1);
                     if (isset($child['child']) || $child['type'] == 'comment') {
@@ -270,7 +270,7 @@ final class getHtmlByMeta
                 }
                 $return .= $tabStr . '}';
             } elseif ($codeMetaArr['type'] == 'dowhile') {
-                $return = $tabStr . "do{\n";
+                $return = $tabStr . "do" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach ($codeMetaArr['child'] as $child) {
                     $return .= $tabStr . $this->getCodeByCodeMeta($child, $tab + 1);
                     if (isset($child['child']) || $child['type'] == 'comment') {
@@ -287,7 +287,7 @@ final class getHtmlByMeta
             } elseif ($codeMetaArr['type'] == '!') {
                 $return = $tabStr . '!' . $this->getCodeByCodeMeta($codeMetaArr['value'], 0);
             } elseif (in_array($codeMetaArr['type'], array('throw', 'echo'))) {
-                $return = $tabStr . $codeMetaArr['type'] . ' ' . $this->getCodeByCodeMeta($codeMetaArr['value'], 0);
+                $return = $tabStr . '<span class="key_words">' . $codeMetaArr['type'] . '</span> ' . $this->getCodeByCodeMeta($codeMetaArr['value'], 0);
             } elseif ($codeMetaArr['type'] == 'array') {
                 //这段一直写的不好.未来优化
                 if (empty($codeMetaArr['child'])) {
@@ -371,7 +371,7 @@ final class getHtmlByMeta
                 $return .= preg_replace('/^' . $tabStr . '/', '', $object2);
             } elseif ($codeMetaArr['type'] == 'try') {
                 //三元运算符
-                $return = $tabStr . "try{\n";
+                $return = $tabStr . '<span class="key_words">try</span>' . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach ($codeMetaArr['child'] as $k => $v) {
                     $return .= $this->getCodeByCodeMeta($v, $tab + 1);
                     if (isset($v['child']) || $v['type'] == 'comment') {
@@ -380,9 +380,9 @@ final class getHtmlByMeta
                         $return .= ";\n";
                     }
                 }
-                $return .= $tabStr . '}catch(';
+                $return .= $tabStr . '}<span class="key_words">catch</span>(';
                 $return .= $this->getCodeByCodeMeta($codeMetaArr['catch'], 0);
-                $return .= "){\n";
+                $return .= ")" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach ($codeMetaArr['catchChild'] as $k => $v) {
                     $return .= $this->getCodeByCodeMeta($v, $tab + 1);
                     if (isset($v['child']) || $v['type'] == 'comment') {

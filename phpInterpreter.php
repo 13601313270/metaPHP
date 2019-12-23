@@ -786,7 +786,7 @@ final class phpInterpreter{
                 if (isset($codeMetaArr['use'])) {
                     $return .= ' ' . $this->getCodeByCodeMeta($codeMetaArr['use'], 0);
                 }
-                $return .= "{\n";
+                $return .= codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,$tab+1);
                     if(isset($v['child']) || in_array($v['type'],$this->noFenhaoType)){
@@ -804,7 +804,7 @@ final class phpInterpreter{
                     $return .= $this->getCodeByCodeMeta($codeMetaArr['value'],0);
                     $return .= ')';
                 }
-                $return .= "{\n";
+                $return .= codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,$tab+1);
                     if(isset($v['child']) || $v['type']=='comment'){
@@ -907,7 +907,7 @@ final class phpInterpreter{
                 if(isset($codeMetaArr['key'])){
                     $return .=$this->getCodeByCodeMeta($codeMetaArr['key'],0).' =>';
                 }
-                $return .=$this->getCodeByCodeMeta($codeMetaArr['value'],0)."){\n";
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'], 0) . ")" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach($codeMetaArr['child'] as $child){
                     $return .=$this->getCodeByCodeMeta($child,$tab+1);
                     if(isset($child['child']) || in_array($child['type'],$this->noFenhaoType)){
@@ -920,7 +920,7 @@ final class phpInterpreter{
             }
             elseif($codeMetaArr['type']=='while'){
                 $return = $tabStr.'while(';
-                $return .=$this->getCodeByCodeMeta($codeMetaArr['value'],0)."){\n";
+                $return .= $this->getCodeByCodeMeta($codeMetaArr['value'], 0) . ")" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach($codeMetaArr['child'] as $child){
                     $return .=$this->getCodeByCodeMeta($child,$tab+1);
                     if(isset($child['child']) || $child['type']=='comment'){
@@ -932,7 +932,7 @@ final class phpInterpreter{
                 $return .= $tabStr.'}';
             }
             elseif($codeMetaArr['type']=='dowhile'){
-                $return = $tabStr."do{\n";
+                $return = $tabStr . "do" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach($codeMetaArr['child'] as $child){
                     $return .=$tabStr.$this->getCodeByCodeMeta($child,$tab+1);
                     if(isset($child['child']) || $child['type']=='comment'){
@@ -1039,7 +1039,7 @@ final class phpInterpreter{
             }
             elseif($codeMetaArr['type']=='try'){
                 //三元运算符
-                $return = $tabStr."try{\n";
+                $return = $tabStr . "try" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach($codeMetaArr['child'] as $k=>$v){
                     $return .= $this->getCodeByCodeMeta($v,$tab+1);
                     if(isset($v['child']) || $v['type']=='comment'){
@@ -1050,7 +1050,7 @@ final class phpInterpreter{
                 }
                 $return .= $tabStr.'}catch(';
                 $return .= $this->getCodeByCodeMeta($codeMetaArr['catch'],0);
-                $return .= "){\n";
+                $return .= ")" . codeStyle::$spaceBeforeBlocks . "{\n";
                 foreach($codeMetaArr['catchChild'] as $k=>$v){
                     $return .= $this->getCodeByCodeMeta($v,$tab+1);
                     if(isset($v['child']) || $v['type']=='comment'){
