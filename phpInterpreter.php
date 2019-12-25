@@ -447,13 +447,12 @@ final class phpInterpreter{
                             $childResult['type'] = $nextKeyWord;
                         }
                         elseif($nextKeyWord=='['){
-                            if ($yunxingshiType === 'code') {
+                            if (count($return) === 0) {
                                 $childResult['type'] = 'array';
                                 $childResult['child'] = $this->_getCodeMetaByCode('array', '', ']');
                             } else {
                                 //数组取值运算符
                                 $obj = $return[count($return)-1];
-                                var_dump($yunxingshiType);exit;
                                 array_pop($return);
                                 $childResult['type'] = 'arrayGet';
                                 $childResult['object'] = $obj;
