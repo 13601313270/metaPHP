@@ -447,13 +447,19 @@ final class phpInterpreter{
                             $childResult['type'] = $nextKeyWord;
                         }
                         elseif($nextKeyWord=='['){
-                            //数组取值运算符
-                            $obj = $return[count($return)-1];
-                            array_pop($return);
-                            $childResult['type'] = 'arrayGet';
-                            $childResult['object'] = $obj;
-                            $childResult['key'] = $this->_getCodeMetaByCode('code','',']');
-                            $this->forward();
+                            if ($yunxingshiType === 'code') {
+                                $childResult['type'] = 'array';
+                                $childResult['child'] = $this->_getCodeMetaByCode('array', '', ']');
+                            } else {
+                                //数组取值运算符
+                                $obj = $return[count($return)-1];
+                                var_dump($yunxingshiType);exit;
+                                array_pop($return);
+                                $childResult['type'] = 'arrayGet';
+                                $childResult['object'] = $obj;
+                                $childResult['key'] = $this->_getCodeMetaByCode('code','',']');
+                                $this->forward();
+                            }
                         }
                         elseif(in_array($nextKeyWord,array('--','++'))){
                             $obj = $return[count($return)-1];
