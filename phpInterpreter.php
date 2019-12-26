@@ -855,7 +855,8 @@ final class phpInterpreter{
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object'],0).'->'.$codeMetaArr['name'];
             }
             elseif($codeMetaArr['type']=='return'){
-                $return = $tabStr.'return '.$this->getCodeByCodeMeta($codeMetaArr['value'],0);
+                $returnValue = $this->getCodeByCodeMeta($codeMetaArr['value'], $tab);
+                $return = $tabStr.'return '.preg_replace('/^\s+/', '', $returnValue);
             }
             elseif(in_array($codeMetaArr['type'],array('&&','^','||','or','[]=','+=','-=','==','===','>=','<=','!==','!=','>','<','.','+','-','=','.='))){
                 $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object1'],0);
@@ -997,7 +998,7 @@ final class phpInterpreter{
                         }
                         if ($isShowMoreLine === false) {
                             // 键值对数组，数量较多时
-                            if (isset($codeMetaArr['child'][0]['key']) && count($codeMetaArr['child']) > 5) {
+                            if (isset($codeMetaArr['child'][0]['key']) && count($codeMetaArr['child']) >= 3) {
                                 $isShowMoreLine = true;
                             }
                         }

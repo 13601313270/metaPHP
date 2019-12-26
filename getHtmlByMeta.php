@@ -195,7 +195,8 @@ final class getHtmlByMeta
             } elseif ($codeMetaArr['type'] == 'objectParams') {
                 $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['object'], 0) . '->' . $codeMetaArr['name'];
             } elseif ($codeMetaArr['type'] == 'return') {
-                $return = $tabStr . '<span class="key_words">return</span> ' . $this->getCodeByCodeMeta($codeMetaArr['value'], 0);
+                $returnValue = $this->getCodeByCodeMeta($codeMetaArr['value'], $tab);
+                $return = $tabStr . '<span class="key_words">return</span> ' . preg_replace('/^\s+/', '', $returnValue);
             } elseif (in_array($codeMetaArr['type'], array('&&', '^', '||', 'or', '[]=', '+=', '-=', '==', '===', '>=', '<=', '!==', '!=', '>', '<', '.', '+', '-', '=', '.='))) {
                 $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['object1'], 0);
                 if ($codeMetaArr['type'] == 'or') {
@@ -326,7 +327,7 @@ final class getHtmlByMeta
                         }
                         if ($isShowMoreLine === false) {
                             // 键值对数组，数量较多时
-                            if (isset($codeMetaArr['child'][0]['key']) && count($codeMetaArr['child']) > 5) {
+                            if (isset($codeMetaArr['child'][0]['key']) && count($codeMetaArr['child']) >= 3) {
                                 $isShowMoreLine = true;
                             }
                         }
