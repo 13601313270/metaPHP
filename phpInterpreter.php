@@ -669,6 +669,7 @@ final class phpInterpreter{
     }
     //不用分号结尾的类型
     private $noFenhaoType = array('comment', 'comments', 'phpBegin', 'phpEnd', 'html', 'class');
+    private $linkRunSign = false;
     /*
      * 元代码还原代码器
      * @param codeMetaArr 元代码
@@ -867,18 +868,34 @@ final class phpInterpreter{
                 $return .= preg_replace('/^\s+/','',$value);
             }
             elseif(in_array($codeMetaArr['type'],array('staticFunction','objectFunction','__construct'))){
-                $return = $tabStr.$this->getCodeByCodeMeta($codeMetaArr['object'],0);
-                $return .= $codeMetaArr['type']=='objectFunction'?'->':'::';
+                $oldLock = $this->linkRunSign;
+                if ($codeMetaArr['type'] == 'objectFunction') {
+                    if ($codeMetaArr['object']['type'] === 'objectFunction') {
+                        $this->linkRunSign = codeStyle::$linkRunNewline;
+                    }
+                    $return = $this->getCodeByCodeMeta($codeMetaArr['object'], $tab);
+                    if ($this->linkRunSign) {
+                        $return .= "\n" . $this->getTabStr($tab + 1) . "->";
+                    } else {
+                        $return .= '->';
+                    }
+                } else {
+                    $return = $this->getCodeByCodeMeta($codeMetaArr['object'], $tab);
+                    $return .= '::';
+                }
                 $return .=$codeMetaArr['name'];
                 $allParams = array();
                 if(isset($codeMetaArr['property'])){
-                    foreach($codeMetaArr['property'] as $param){
-                        $paramStr = $this->getCodeByCodeMeta($param,$tab);
-                        $allParams[] = preg_replace('/^'.$tabStr.'/','',$paramStr);
+                    foreach ($codeMetaArr['property'] as $param) {
+                        $paramStr = $this->getCodeByCodeMeta($param, $this->linkRunSign ? $tab + 1 : $tab);
+                        $allParams[] = preg_replace('/^' . $this->getTabStr($this->linkRunSign ? $tab + 1 : $tab) . '/', '', $paramStr);
                     }
                     $return .= '('.implode(codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1],$allParams).')';
                 }else{
                     $return .= '()';
+                }
+                if (!$oldLock && $this->linkRunSign) {
+                    $this->linkRunSign = false;
                 }
             }
             elseif($codeMetaArr['type']=='functionCall'){

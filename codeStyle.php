@@ -17,5 +17,6 @@ class codeStyle
     public static $commaSpacing = ['', ' '];// 逗号周围使用空格
     public static $arrayElementNewline = 'auto';// 数组每一项独立一行，可选值有 allways->换行(默认)，never->不换行，auto->自动
     public static $spaceBeforeBlocks = ' ';// 语句块之前的空格
+    public static $linkRunNewline = true;//链式调用，每一次调用，独立一行
 
 }

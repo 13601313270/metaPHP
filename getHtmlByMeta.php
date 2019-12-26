@@ -33,6 +33,7 @@ final class getHtmlByMeta
      *
      * @return string
      **/
+    private $linkRunSign = false;
     public function getCodeByCodeMeta($codeMetaArr, $tab)
     {
         $tabStr = $this->getTabStr($tab);
@@ -205,18 +206,34 @@ final class getHtmlByMeta
                 $value = $this->getCodeByCodeMeta($codeMetaArr['object2'], $tab);
                 $return .= preg_replace('/^\s+/', '', $value);
             } elseif (in_array($codeMetaArr['type'], array('staticFunction', 'objectFunction', '__construct'))) {
-                $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['object'], 0);
-                $return .= $codeMetaArr['type'] == 'objectFunction' ? '->' : '::';
+                $oldLock = $this->linkRunSign;
+                if ($codeMetaArr['type'] == 'objectFunction') {
+                    if ($codeMetaArr['object']['type'] === 'objectFunction') {
+                        $this->linkRunSign = codeStyle::$linkRunNewline;
+                    }
+                    $return = $this->getCodeByCodeMeta($codeMetaArr['object'], $tab);
+                    if ($this->linkRunSign) {
+                        $return .= '<br/>' . $this->getTabStr($tab + 1) . '->';
+                    } else {
+                        $return .= '->';
+                    }
+                } else {
+                    $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['object'], $tab);
+                    $return .= '::';
+                }
                 $return .= '<span class="class_property_call">' . $codeMetaArr['name'] . '</span>';
                 $allParams = array();
                 if (isset($codeMetaArr['property'])) {
                     foreach ($codeMetaArr['property'] as $param) {
-                        $paramStr = $this->getCodeByCodeMeta($param, $tab);
-                        $allParams[] = preg_replace('/^' . $tabStr . '/', '', $paramStr);
+                        $paramStr = $this->getCodeByCodeMeta($param, $this->linkRunSign ? $tab + 1 : $tab);
+                        $allParams[] = preg_replace('/^' . $this->getTabStr($this->linkRunSign ? $tab + 1 : $tab) . '/', '', $paramStr);
                     }
                     $return .= '(' . implode(codeStyle::$commaSpacing[0] . ',' . codeStyle::$commaSpacing[1], $allParams) . ')';
                 } else {
                     $return .= '()';
+                }
+                if (!$oldLock && $this->linkRunSign) {
+                    $this->linkRunSign = false;
                 }
             } elseif ($codeMetaArr['type'] == 'functionCall') {
                 $return = $tabStr . $this->getCodeByCodeMeta($codeMetaArr['name'], 0);
