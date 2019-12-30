@@ -5,6 +5,7 @@
  * Date: 2016/12/28
  * Time: 下午5:16
  */
+namespace metaPHP;
 abstract class githubAction{
     //正在运行的本地分支
     public $runLocalBranch = '';

@@ -5,6 +5,9 @@
  * Date: 2016/12/21
  * Time: 下午3:29
  */
+namespace metaPHP;
+use ReflectionClass;
+use ReflectionMethod;
 class classAction extends ReflectionClass{
     private $isInFile = true;
     private $isSysClass = false;

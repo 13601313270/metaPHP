@@ -5,6 +5,7 @@
  * Date: 2017/3/23
  * Time: 上午11:15
  */
+namespace metaPHP;
 class metaSearch{
     private function isSearch($dom,$search){
         $searchSplit = explode(':',$search);

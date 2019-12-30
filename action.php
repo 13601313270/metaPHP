@@ -5,6 +5,7 @@
  * Date: 2016/12/21
  * Time: 下午6:53
  */
+namespace metaPHP;
 $class = new classAction('className');
 foreach($class->getMethods() as $item){
     if($item->class==$class->getName()){

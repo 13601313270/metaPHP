@@ -5,6 +5,7 @@
  * Date: 2017/5/9
  * Time: 下午8:54
  */
+namespace metaPHP;
 class evalMetaCode{
     private $codeMeta;
     public function __construct($codeMeta,$variable)

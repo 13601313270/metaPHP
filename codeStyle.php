@@ -6,6 +6,7 @@
  * Date: 2019-12-17
  * Time: 20:38
  */
+namespace metaPHP;
 class codeStyle
 {
     // 命名规范参考eslint。https://cn.eslint.org/docs/rules/

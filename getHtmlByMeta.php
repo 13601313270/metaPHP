@@ -5,6 +5,7 @@
  * Date: 2019-12-18
  * Time: 15:50
  */
+namespace metaPHP;
 include_once 'codeStyle.php';
 
 final class getHtmlByMeta

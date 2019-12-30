@@ -5,6 +5,7 @@
  * Date: 2017/4/21
  * Time: 下午5:06
  */
+namespace metaPHP;
 class runSomeTime{
     public static function thenRemove($callback){
         try{

@@ -5,6 +5,7 @@
  * Date: 2017/2/16
  * Time: 上午11:52
  */
+namespace metaPHP;
 include_once 'codeStyle.php';
 
 final class phpInterpreter{
