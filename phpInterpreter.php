@@ -7,6 +7,7 @@
  */
 namespace metaPHP;
 include_once 'codeStyle.php';
+include_once 'codeType/return.php';
 
 final class phpInterpreter{
     private $savedCode;
@@ -14,10 +15,12 @@ final class phpInterpreter{
     public $codeMeta;
     private $codeArrPre ='';
     private $hasBeginPos = false;
+    private $plubins = [];
     public function __construct($code)
     {
         $this->savedCode = $code;
         $temp = array();
+        $this->plubins[] = new type_return();
         //生成运行时下可以的描述符
         foreach($this->dataTypeDesc as $v){
             foreach($v['runEnvironment'] as $runEnvironment){
@@ -205,7 +208,17 @@ final class phpInterpreter{
                         $childResult = array(
                             'lineNum'=>$this->lineNum,
                         );
-                        if(in_array($nextKeyWord,array('if','else','elseif'))){
+                        $matchPlugin = null;
+                        foreach ($this->plubins as $plugin) {
+                            if ($plugin->matchKeyWord($nextKeyWord)) {
+                                $matchPlugin = $plugin;
+                                break;
+                            }
+                        }
+                        if ($matchPlugin !== null) {
+                            $childResult = $plugin->run($this);
+                        }
+                        else if(in_array($nextKeyWord,array('if','else','elseif'))){
                             $nextWord = $this->forward();
                             if($nextKeyWord=='else' && $nextWord=='if'){
                                 $nextWord = $this->forward();
@@ -488,11 +501,6 @@ final class phpInterpreter{
                             }else{
                                 $childResult['property'] = $this->_getCodeMetaByCode('codeBlock','',';');
                             }
-
-                        }
-                        elseif(in_array($nextKeyWord,array('return','include_once'))){
-                            $childResult['type'] = $nextKeyWord;
-                            $childResult['value'] = current($this->_getCodeMetaByCode('codeBlock','',';'));
                         }
                         elseif(substr($nextKeyWord,0,1)=='$'){
                             //变量
@@ -661,7 +669,7 @@ final class phpInterpreter{
      *
      * @return string
      **/
-    private function getTabStr($tab){
+    public function getTabStr($tab){
         $return = '';
         for($i=0;$i<$tab;$i++){
             $return .= codeStyle::$indent;
@@ -682,7 +690,18 @@ final class phpInterpreter{
         $tabStr = $this->getTabStr($tab);
         $return = '';
         if(isset($codeMetaArr['type'])){
-            if($codeMetaArr['type']=='window'){
+
+            $matchPlugin = null;
+            foreach ($this->plubins as $plugin) {
+                if ($plugin->key=== $codeMetaArr['type']) {
+                    $matchPlugin = $plugin;
+                    break;
+                }
+            }
+            if ($matchPlugin !== null) {
+                $return = $matchPlugin->getCodeByMeta($codeMetaArr, $this, $tab);
+            }
+            else if($codeMetaArr['type']=='window'){
                 $return = $tabStr;
                 foreach($codeMetaArr['child'] as $v){
                     $return .= $this->getCodeByCodeMeta($v,0);
